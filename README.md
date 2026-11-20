@@ -6,14 +6,18 @@
 
 它先以素压的方式藏在纸里。读到哪里，声呐就测到哪里，海底像拓印一样显现出来。读者另有 12 次声呐，结尾会留下一幅属于自己的航迹图，向林璎的《水线》（*Water Line*, 2006）致意。
 
-在线阅读：https://iehrhei.github.io/relief/
+在线阅读：https://iehrhei.github.io/relief/ （英文，默认）· https://iehrhei.github.io/relief/zh/ （中文）
+
+Read online in English (default) or Chinese; the switch sits with the controls at the top right of the page.
 
 ---
 
 ## 目录结构
 
 ```
-index.html        页面（HTML、CSS、JS 都在这一个文件里）
+index.html        英文页面（默认，由 src/ 生成，HTML、CSS、JS 都在一个文件里）
+zh/index.html     中文页面（同样由 src/ 生成；用 <base href="../"> 共用根目录的数据、字体和图片）
+src/              页面源文件：head.html（样式与中文页头）、main.html（中文正文）、main_en.html（英文正文）、script.html（共用脚本，界面文字按页面语言切换）
 relief.json       条带元数据、海岸线、GEBCO 海底地名
 relief.bin.gz     海底高程（压缩传输格式，见下文）
 relief.bin        海底高程（未压缩备用，int16 小端，单位米）
@@ -25,6 +29,14 @@ build/            从原始数据重建以上文件的脚本
 ```
 
 页面不依赖任何外部服务，字体和数据都随仓库一起提供，所以在中国大陆也能完整显示。
+
+## 修改正文
+
+正文在 `src/main.html`（中文）和 `src/main_en.html`（英文）。两份正文的章节 id（`s1`…`s9`、`nosun`、`lostcity`、`discol`、`coda` 等）必须保持一致，海底与文字的对位依赖它们。改完后重新生成页面：
+
+```bash
+python3 build/make_pages.py
+```
 
 ## 海底数据
 
@@ -57,10 +69,11 @@ python3 build/export22.py         # 导出 relief.bin、relief.bin.gz、relief.j
 字体子集：先把 npm 上的 `@fontsource/noto-serif-sc`、`@fontsource/cormorant-garamond`、`@fontsource/ibm-plex-mono` 解压到 `build/fontsource/`，然后运行：
 
 ```bash
-python3 build/fonts.py index.html fonts
+cat index.html zh/index.html > /tmp/both.html
+python3 build/fonts.py /tmp/both.html fonts
 ```
 
-正文改动后需要重新生成字体子集，否则新增的字会退回系统字体。
+正文改动后需要重新生成字体子集，否则新增的字会退回系统字体。英文页的标题用 Cormorant Garamond，正文用 Noto Serif SC 的拉丁字形；两种语言共用同一套子集。
 
 ## 图版与授权
 

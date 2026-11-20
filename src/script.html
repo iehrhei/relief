@@ -1,0 +1,311 @@
+<script>
+(function(){
+"use strict";
+var RM=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+var DPR=Math.min(window.devicePixelRatio||1,2);
+var $=function(id){return document.getElementById(id);};
+var body=document.body;
+var EN=(document.documentElement.lang||"").indexOf("en")===0;
+var T=EN?{soundOn:"Sound · on",soundOff:"Sound · off",soundNA:"No sound",plain:"Text only",sea:"Seafloor",m:" m",N:"",S:"",nSuf:"N",sSuf:"S",
+  center:" · strip centerline ",depth:function(z){return z.toLocaleString("en-US")+" m deep";},land:"land",surface:"sea surface",bouvet:"Bouvet Island",fail:"The seafloor data didn't load. The text is all here.",
+  ov:function(d,p){return "Your track · "+d.toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"})+" · "+p+" of this seafloor mapped";},
+  scale:function(km,n){return "On this map one pixel is about "+km+" km. An eight-meter plough track is about 1/"+n+" of a pixel, invisible here.";}}
+ :{soundOn:"声音 · 开",soundOff:"声音 · 关",soundNA:"声音不可用",plain:"纯文字",sea:"海底",m:" 米",N:"北纬 ",S:"南纬 ",nSuf:"",sSuf:"",
+  center:" · 条带中线 ",depth:function(z){return "水深 "+z.toLocaleString("en-US")+" 米";},land:"陆地",surface:"海面",bouvet:"布韦岛",fail:"海底数据没能载入，先读文字吧。",
+  ov:function(d,p){return "你的航迹 · "+d.getFullYear()+" 年 "+(d.getMonth()+1)+" 月 "+d.getDate()+" 日 · 测绘了这条海底的 "+p;},
+  scale:function(km,n){return "在这张图上，一个像素约等于 "+km+" 公里。一道八米宽的犁痕，只有一个像素的 "+n+" 分之一，在这里看不见。";}};
+var PAPER=[234,230,222],GRAPH=[38,41,47];
+
+/* ---------- 纸 ---------- */
+(function(){try{var c=document.createElement("canvas");c.width=c.height=256;var x=c.getContext("2d"),im=x.createImageData(256,256),d=im.data;
+  for(var i=0;i<256*256;i++){var y=(i/256)|0,n=Math.random()*.6+.4*Math.abs(Math.sin(y*.9+Math.random()*.4)),v=Math.round(PAPER[0]-4.5+n*8);
+    d[i*4]=v;d[i*4+1]=v-4;d[i*4+2]=v-12;d[i*4+3]=255;}
+  x.putImageData(im,0,0);body.style.backgroundImage="url("+c.toDataURL()+")";}catch(e){}})();
+
+/* ---------- 图版：读到时才在纸上显影 ---------- */
+(function(){var ps=[].slice.call(document.querySelectorAll("figure.plate"));
+  if(!("IntersectionObserver" in window)||RM){ps.forEach(function(f){f.classList.add("shown");});return;}
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add("shown");io.unobserve(e.target);}});},{rootMargin:"0px 0px -18% 0px"});
+  ps.forEach(function(f){io.observe(f);});})();
+
+/* ---------- 声音 ---------- */
+var soundOn=false,actx=null,btn=$("sound");
+btn.addEventListener("click",function(e){e.stopPropagation();
+  soundOn=!soundOn;btn.setAttribute("aria-pressed",String(soundOn));btn.textContent=soundOn?T.soundOn:T.soundOff;
+  if(soundOn&&!actx){try{actx=new (window.AudioContext||window.webkitAudioContext)();}catch(err){soundOn=false;btn.textContent=T.soundNA;}}
+  if(actx&&actx.state==="suspended")actx.resume().catch(function(){});});
+function tone(t0,f0,f1,g,dur){var o=actx.createOscillator(),gn=actx.createGain(),lp=actx.createBiquadFilter();lp.type="lowpass";lp.frequency.value=2400;
+  o.type="sine";o.frequency.setValueAtTime(f0,t0);o.frequency.exponentialRampToValueAtTime(f1,t0+dur);
+  gn.gain.setValueAtTime(.0001,t0);gn.gain.exponentialRampToValueAtTime(g,t0+.008);gn.gain.exponentialRampToValueAtTime(.0001,t0+dur);
+  o.connect(lp);lp.connect(gn);gn.connect(actx.destination);o.start(t0);o.stop(t0+dur+.05);}
+function ping(weak){if(!soundOn||!actx)return;try{var t=actx.currentTime;tone(t,1320,1180,weak?.02:.06,1.4);if(!weak)tone(t+.95,1300,1170,.02,1.1);}catch(e){}}
+$("plain").addEventListener("click",function(e){e.stopPropagation();var on=!body.classList.contains("plain");body.classList.toggle("plain",on);this.setAttribute("aria-pressed",String(on));this.textContent=on?T.sea:T.plain;dirty=true;});
+
+/* ---------- 数据 ---------- */
+var META,NC,NR,Z,ZS,SEA,embC,sunC,toneC,mask,mx,grainPat,coastPath,landTint;
+var sea=$("sea"),sx=sea.getContext("2d"),fx=$("fx"),fxx=fx.getContext("2d");
+var offA,oa;
+var Y={},ppr=3,row0Y=0,axisX=0,axisCol=0,built=false,dirty=true,ready=false;
+var state={lo:-1,hi:-1,pings:[],left:12},singleLines=[],pctVal=0,pctDirty=true;
+
+function loadData(){
+  var pj=fetch("relief.json").then(function(r){if(!r.ok)throw 0;return r.json();});
+  // 高程：每行沿列差分、拆成低/高字节两层，再 gzip；不支持解压的浏览器读未压缩的 relief.bin
+  var pb=(window.DecompressionStream?fetch("relief.bin.gz").then(function(r){if(!r.ok)throw 0;return new Response(r.body.pipeThrough(new DecompressionStream("gzip"))).arrayBuffer();}).then(function(buf){return {packed:new Uint8Array(buf)};})
+    :Promise.reject(0)).catch(function(){return fetch("relief.bin").then(function(r){if(!r.ok)throw 0;return r.arrayBuffer();}).then(function(buf){return {raw:new Int16Array(buf)};});})
+    .catch(function(){if(!window.DecompressionStream)throw 0;return fetch("relief.b64.txt").then(function(r){if(!r.ok)throw 0;return r.text();}).then(function(t){var bin=atob(t.trim()),u=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);
+      return new Response(new Blob([u]).stream().pipeThrough(new DecompressionStream("gzip"))).arrayBuffer();}).then(function(buf){return {packed:new Uint8Array(buf)};});});
+  return Promise.all([pj,pb]);}
+
+function prep(meta,img){
+  META=meta;NC=meta.nc;NR=meta.nr;axisCol=meta.axisCol;var N=NC*NR;
+  Z=new Float32Array(N);SEA=new Uint8Array(N);
+  if(img.raw){for(var i=0;i<N;i++)Z[i]=img.raw[i];}
+  else{var P=img.packed;for(var r0=0;r0<NR;r0++){var acc=0;for(var c0=0;c0<NC;c0++){var j=r0*NC+c0,v=P[j]|(P[N+j]<<8);if(v>32767)v-=65536;acc=c0?acc+v:v;Z[j]=acc;}}}
+  for(var i2=0;i2<N;i2++)SEA[i2]=Z[i2]<0?1:0;
+  ZS=blur(Z,NC,NR,2);var ZL=blur(Z,NC,NR,7);
+  var cellM=meta.cellKm*1000,ex=5;
+  var L=[-.62,-.62,.48],Lz=L[2];
+  embC=mk(NC,NR);sunC=mk(NC,NR);toneC=mk(NC,NR);
+  var e1=embC.getContext("2d"),s1=sunC.getContext("2d"),t1=toneC.getContext("2d");
+  var ie=e1.createImageData(NC,NR),is=s1.createImageData(NC,NR),it=t1.createImageData(NC,NR),de=ie.data,ds=is.data,dt=it.data;
+  for(var r=0;r<NR;r++)for(var q=0;q<NC;q++){
+    var i2=r*NC+q,a=q>0?q-1:q,b=q<NC-1?q+1:q,u=r>0?r-1:r,v=r<NR-1?r+1:r,k=i2*4;
+    if(!SEA[i2]){de[k]=255;de[k+1]=253;de[k+2]=248;de[k+3]=55;ds[k+3]=0;dt[k+3]=0;continue;}
+    // 素压：平滑后的起伏
+    var gx=(ZS[r*NC+b]-ZS[r*NC+a])/(2*cellM)*ex,gy=(ZS[v*NC+q]-ZS[u*NC+q])/(2*cellM)*ex,nl=Math.sqrt(gx*gx+gy*gy+1);
+    var hs=(-gx*L[0]-gy*L[1]+L[2])/nl,e=(hs-Lz)*2.2;
+    if(e>0){de[k]=255;de[k+1]=253;de[k+2]=246;de[k+3]=Math.min(255,e*70);}else{de[k]=92;de[k+1]=80;de[k+2]=64;de[k+3]=Math.min(255,-e*34);}
+    // 全分辨率
+    gx=(Z[r*NC+b]-Z[r*NC+a])/(2*cellM)*ex;gy=(Z[v*NC+q]-Z[u*NC+q])/(2*cellM)*ex;nl=Math.sqrt(gx*gx+gy*gy+1);
+    var hf=(-gx*L[0]-gy*L[1]+L[2])/nl,ef=(hf-Lz)*2.4;
+    if(ef>0){ds[k]=255;ds[k+1]=250;ds[k+2]=236;ds[k+3]=Math.min(255,ef*150);}else{ds[k]=70;ds[k+1]=62;ds[k+2]=52;ds[k+3]=Math.min(255,-ef*120);}
+    // 拓印：凸起处吃墨，阴面与陡坡也吃墨
+    var lr=Math.tanh((Z[i2]-ZL[i2])/300),sh=Math.min(1,Math.max(0,Lz-hf+.03)*2.4),tt=.04+.72*sh+.22*Math.max(0,lr);
+    tt=Math.max(0,Math.min(1,tt));dt[k]=GRAPH[0];dt[k+1]=GRAPH[1];dt[k+2]=GRAPH[2];dt[k+3]=Math.round(188*Math.pow(tt,1.25));}
+  e1.putImageData(ie,0,0);s1.putImageData(is,0,0);t1.putImageData(it,0,0);
+  mask=mk(NC,NR);mx=mask.getContext("2d");
+  // 海岸线
+  coastPath=new Path2D();META.coast.forEach(function(l){for(var j=0;j<l.length;j+=2){var X=l[j]/4,Yy=l[j+1]/4;j?coastPath.lineTo(X,Yy):coastPath.moveTo(X,Yy);}});
+  // 纸的齿：石墨落在纸纹的高处
+  var g=mk(256,256),gx2=g.getContext("2d"),gi=gx2.createImageData(256,256),gd=gi.data;
+  for(var p=0;p<256*256;p++){var n=Math.random(),al=.42+.58*Math.pow(n,.8);
+    gd[p*4]=GRAPH[0];gd[p*4+1]=GRAPH[1];gd[p*4+2]=GRAPH[2];gd[p*4+3]=Math.round(al*235);}
+  gx2.putImageData(gi,0,0);grainPat=g;}
+
+function blur(src,W,H,rad){var a=new Float32Array(src),b=new Float32Array(src.length);
+  for(var pass=0;pass<3;pass++){
+    for(var r=0;r<H;r++){var acc=0,o=r*W;for(var c=-rad;c<=rad;c++)acc+=a[o+Math.min(W-1,Math.max(0,c))];
+      for(var c2=0;c2<W;c2++){b[o+c2]=acc/(2*rad+1);acc+=a[o+Math.min(W-1,c2+rad+1)]-a[o+Math.max(0,c2-rad)];}}
+    for(var c3=0;c3<W;c3++){var acc2=0;for(var r2=-rad;r2<=rad;r2++)acc2+=b[Math.min(H-1,Math.max(0,r2))*W+c3];
+      for(var r3=0;r3<H;r3++){a[r3*W+c3]=acc2/(2*rad+1);acc2+=b[Math.min(H-1,r3+rad+1)*W+c3]-b[Math.max(0,r3-rad)*W+c3];}}}
+  return a;}
+function mk(w,h){var c=document.createElement("canvas");c.width=w;c.height=h;return c;}
+
+/* ---------- 版面与海底的对位 ---------- */
+var LOST,BOUVET;
+function measure(){
+  var top=function(id){return $(id).getBoundingClientRect().top+scrollY;};
+  ["s1","s2","s3","nosun","s4","lostcity","s5","s6","s7","discol","s8","s9","coda","leadAnchor"].forEach(function(k){Y[k]=top(k);});
+  var p=document.querySelector("#s1 p").getBoundingClientRect();Y.colL=p.left;Y.colR=p.right;Y.end=document.documentElement.scrollHeight;}
+function rowAt(docY){return LOST.r+(docY-Y.lostcity)/ppr;}
+function docYAt(r){return Y.lostcity+(r-LOST.r)*ppr;}
+function colAt(x){return axisCol+(x-axisX)/ppr;}
+function xAt(c){return axisX+(c-axisCol)*ppr;}
+
+function build(){
+  measure();
+  META.labels.forEach(function(l){if(l.en==="Lost City")LOST=l;if(l.en==="Bouvet Island")BOUVET=l;});
+  ppr=(Y.coda-Y.lostcity)/(BOUVET.r-LOST.r);
+  axisX=innerWidth>900?innerWidth*.72:innerWidth*.6;
+  sea.width=fx.width=Math.round(innerWidth*DPR);sea.height=fx.height=Math.round(innerHeight*DPR);
+  offA=mk(sea.width,sea.height);oa=offA.getContext("2d");
+  mx.clearRect(0,0,NC,NR);singleLines=[];
+  var sc=T.scale((META.cellKm/ppr).toFixed(1),Math.round(META.cellKm/ppr*1000/8));$("scaleNote").textContent=sc;
+  built=true;
+  if(state.hi>=0)paintRows(state.lo,state.hi,true);
+  state.pings.forEach(function(p){revealAt(p.r,p.c);});
+  pctDirty=true;dirty=true;updateHud();}
+
+/* ---------- 测绘 ---------- */
+var SW0=.12,SW1=.88;
+function paintRows(rA,rB,replay){
+  var lo=Math.min(rA,rB),hi=Math.max(rA,rB),r1=rowAt(Y.s1),r2=rowAt(Y.s2);
+  if(hi>r1&&lo<r2){var step=96/ppr,first=Math.ceil(Math.max(lo,r1)/step)*step;
+    for(var r=first;r<=Math.min(hi,r2);r+=step){var rr=Math.round(r);if(singleLines.indexOf(rr)<0)singleLines.push(rr);}}
+  var f0=Math.max(lo,r2),f1=hi;
+  if(f1>f0){var c0=colAt(innerWidth*SW0),c1=colAt(innerWidth*SW1),g=mx.createLinearGradient(c0,0,c1,0);
+    g.addColorStop(0,"rgba(0,0,0,0)");g.addColorStop(.1,"rgba(0,0,0,1)");g.addColorStop(.9,"rgba(0,0,0,1)");g.addColorStop(1,"rgba(0,0,0,0)");
+    mx.fillStyle=g;mx.fillRect(c0,f0,c1-c0,Math.max(.6,f1-f0));}
+  state.lo=state.lo<0?lo:Math.min(state.lo,lo);state.hi=Math.max(state.hi,hi);pctDirty=true;dirty=true;}
+function revealAt(r,c){var rad=90/ppr,g=mx.createRadialGradient(c,r,0,c,r,rad);
+  g.addColorStop(0,"rgba(0,0,0,.95)");g.addColorStop(.6,"rgba(0,0,0,.6)");g.addColorStop(1,"rgba(0,0,0,0)");
+  mx.fillStyle=g;mx.beginPath();mx.arc(c,r,rad,0,6.2832);mx.fill();pctDirty=true;dirty=true;}
+var rings=[];
+document.addEventListener("click",function(e){
+  if(!built||body.classList.contains("plain")||e.target.closest("a,button,.controls"))return;
+  var docY=e.clientY+scrollY;if(docY<Y.s1)return;
+  rings.push({x:e.clientX*DPR,y:e.clientY*DPR,t:performance.now(),dry:state.left<=0});
+  if(state.left<=0){ping(true);var el=$("hudPings");el.style.color="#9a6a3c";setTimeout(function(){el.style.color="";},700);return;}
+  state.left--;var p={r:rowAt(docY),c:colAt(e.clientX)};state.pings.push(p);revealAt(p.r,p.c);ping(false);updateHud();save();});
+
+/* ---------- 浮 ---------- */
+var glyph=$("glyph");
+function setGlyph(a){var dx=Math.cos(a),dy=Math.sin(a);
+  glyph.style.textShadow=(-dx*1.2).toFixed(2)+"px "+(-dy*1.2).toFixed(2)+"px 0 rgba(255,253,247,.95),"+(dx*1.2).toFixed(2)+"px "+(dy*1.2).toFixed(2)+"px 1px rgba(92,80,64,.42),"+(dx*5).toFixed(2)+"px "+(dy*5).toFixed(2)+"px 12px rgba(92,80,64,.16)";}
+setGlyph(-2.4);
+window.addEventListener("pointermove",function(e){var r=glyph.getBoundingClientRect();if(r.bottom<-200||r.top>innerHeight+200)return;
+  setGlyph(Math.atan2(r.top+r.height/2-e.clientY,r.left+r.width/2-e.clientX));},{passive:true});
+
+/* ---------- 绘制海底 ---------- */
+var sunAmt=0;
+function ink(a){return "rgba("+GRAPH[0]+","+GRAPH[1]+","+GRAPH[2]+","+a+")";}
+function renderSea(){
+  var W=sea.width,Hh=sea.height,top=scrollY,vh=innerHeight,k=DPR;
+  sx.setTransform(1,0,0,1,0,0);sx.clearRect(0,0,W,Hh);if(body.classList.contains("plain"))return;
+  var rTop=rowAt(top),rH=vh/ppr,cL=colAt(0),cW=innerWidth/ppr;
+  var startY=Math.max(0,(Math.max(Y.s1-200,docYAt(0)+10)-top))*k;if(startY>=Hh)return;
+  sx.save();sx.beginPath();sx.rect(0,startY,W,Hh-startY);sx.clip();
+  sx.imageSmoothingEnabled=true;sx.imageSmoothingQuality="high";
+  // 1 素压（想象的太阳出现时，换成全分辨率的斜光）
+  if(sunAmt<.99){sx.globalAlpha=1-sunAmt;sx.drawImage(embC,cL,rTop,cW,rH,0,0,W,Hh);}
+  if(sunAmt>.01){sx.globalAlpha=sunAmt;sx.drawImage(sunC,cL,rTop,cW,rH,0,0,W,Hh);}
+  sx.globalAlpha=1;
+  // 2 拓印：纸齿 × 墨色 × 测过的范围
+  oa.setTransform(1,0,0,1,0,0);oa.globalCompositeOperation="source-over";oa.clearRect(0,0,W,Hh);
+  var pat=oa.createPattern(grainPat,"repeat");oa.fillStyle=pat;oa.save();oa.translate(0,-((top*k)%256));oa.fillRect(0,0,W,Hh+256);oa.restore();
+  oa.imageSmoothingEnabled=true;oa.globalCompositeOperation="destination-in";oa.drawImage(toneC,cL,rTop,cW,rH,0,0,W,Hh);
+  oa.drawImage(mask,cL,rTop,cW,rH,0,0,W,Hh);oa.globalCompositeOperation="source-over";
+  sx.drawImage(offA,0,0);
+  // 3 第一章：单波束剖面（墨线）
+  sx.lineWidth=k*.9;sx.strokeStyle=ink(.62);
+  singleLines.forEach(function(r){var y0=docYAt(r)-top;if(y0<-80||y0>vh+80||r<0||r>=NR)return;sx.beginPath();var on=false;
+    for(var c=Math.max(0,Math.floor(cL));c<Math.min(NC,cL+cW+1);c++){var z=Z[r*NC+c];if(z>=0){on=false;continue;}var py=(y0-(z+3000)*.012)*k,px=xAt(c)*k;
+      if(on)sx.lineTo(px,py);else{sx.moveTo(px,py);on=true;}}sx.stroke();});
+  // 4 陆地的海岸线：已知的部分，始终画着
+  sx.save();var s=ppr*k;sx.setTransform(s,0,0,s,(axisX-axisCol*ppr)*k,(docYAt(0)-top)*k);sx.lineWidth=.8*k/s;sx.strokeStyle=ink(.62);sx.stroke(coastPath);sx.restore();
+  // 5 阅读通道
+  var l=(Y.colL-40)*k,rr=(Y.colR+40)*k,g=sx.createLinearGradient(l,0,rr,0),P="rgba("+PAPER.join(",");
+  var la2=innerWidth>900?.8:.5;g.addColorStop(0,P+",0)");g.addColorStop(.07,P+","+la2+")");g.addColorStop(.93,P+","+la2+")");g.addColorStop(1,P+",0)");
+  sx.fillStyle=g;sx.fillRect(l,0,rr-l,Hh);
+  // 6 地名：陆地的名字一直在；海底的名字，测到了才出现
+  sx.font=(10*k)+"px 'IBM Plex Mono', monospace";sx.textBaseline="middle";
+  META.labels.forEach(function(lb){var y=(docYAt(lb.r)-top),x=xAt(lb.c);if(y<-20||y>vh+20||x<-10||x>innerWidth+10)return;
+    if(docYAt(lb.r)<Y.s1-100)return;
+    var vis=lb.land?1:maskAt(lb.r,lb.c);if(vis<.25)return;
+    var tx=x+10,inLane=x>Y.colL-40&&x<Y.colR+40;if(inLane)tx=Y.colR+52;
+    sx.globalAlpha=Math.min(1,vis*1.3);
+    sx.fillStyle=ink(.85);sx.beginPath();sx.arc(x*k,y*k,(lb.land?1.4:1.8)*k,0,6.2832);lb.land?sx.fill():(sx.lineWidth=k*.8,sx.strokeStyle=ink(.8),sx.stroke());
+    if(inLane){sx.strokeStyle=ink(.16);sx.lineWidth=k*.5;sx.beginPath();sx.moveTo((x+4)*k,y*k);sx.lineTo((tx-4)*k,y*k);sx.stroke();}
+    sx.fillStyle=ink(.78);sx.textAlign="left";sx.fillText(EN?lb.en:lb.zh+"  "+lb.en,tx*k,(y-5)*k);
+    sx.fillStyle=ink(.48);sx.fillText(lb.lat+(lb.land?"":"  "+Math.abs(lb.z).toLocaleString("en-US")+" m"),tx*k,(y+8)*k);});
+  sx.globalAlpha=1;sx.restore();
+  if(startY>0){var fg=sx.createLinearGradient(0,startY,0,startY+260*k);fg.addColorStop(0,"rgba(0,0,0,1)");fg.addColorStop(1,"rgba(0,0,0,0)");sx.globalCompositeOperation="destination-out";sx.fillStyle=fg;sx.fillRect(0,startY-1,W,260*k+1);sx.globalCompositeOperation="source-over";}}
+var mcache={};
+function maskAt(r,c){var key=r+"_"+c;try{var a=mx.getImageData(Math.round(c),Math.round(r),1,1).data[3]/255;return a;}catch(e){return 0;}}
+
+/* ---------- 前景 ---------- */
+var flakes=[];(function(){var n=RM?40:110;for(var i=0;i<n;i++)flakes.push({x:Math.random(),y:Math.random(),r:.4+Math.random()*1.0,v:.006+Math.random()*.014,ph:Math.random()*6.28,a:.15+Math.random()*.3});})();
+var snowAmt=0,maxYears=0;
+function renderFx(now,dt){
+  var W=fx.width,Hh=fx.height,k=DPR,vh=innerHeight,top=scrollY,beamDoc=top+vh*.55;fxx.clearRect(0,0,W,Hh);
+  if(body.classList.contains("plain"))return;
+  // 测深绳
+  if(beamDoc<Y.s1+vh*.4){var x=(Y.colL-64)*k,ys=Math.max(0,(Y.leadAnchor-top))*k,ye=vh*.55*k,fade=1-smooth(Y.s1-vh*.1,Y.s1+vh*.4,beamDoc);
+    if(ye>ys&&fade>0){fxx.strokeStyle=ink((.5*fade).toFixed(3));fxx.lineWidth=k*.8;fxx.beginPath();fxx.moveTo(x,ys);fxx.lineTo(x,ye);fxx.stroke();
+      var target=Z?-Z[Math.max(0,Math.min(NR-1,Math.round(rowAt(Y.s1))))*NC+axisCol]:3000,depth=Math.max(0,Math.min(target,(beamDoc-Y.leadAnchor-vh*.55)/(Y.s1-Y.leadAnchor-vh*.2)*target));
+      fxx.fillStyle=ink((.7*fade).toFixed(3));fxx.beginPath();fxx.arc(x,ye,2.2*k,0,6.2832);fxx.fill();
+      fxx.font=(10*k)+"px 'IBM Plex Mono', monospace";fxx.fillStyle="rgba(124,118,108,"+fade.toFixed(3)+")";fxx.textAlign="right";fxx.textBaseline="alphabetic";
+      fxx.fillText(Math.round(depth/10)*10+T.m,x-10*k,ye+4*k);
+      for(var t=500;t<depth;t+=500){var ty=ye-(depth-t)/Math.max(1,target)*(ye-ys);fxx.fillRect(x-4*k,ty,8*k,k*.7);}}}
+  // 声呐线
+  if(beamDoc>Y.s1){var by=vh*.55*k,single=beamDoc<Y.s2,a=single?.55:.4,g=fxx.createLinearGradient(0,0,W,0);
+    if(single){g.addColorStop(.0,ink(0));g.addColorStop(.5,ink(a));g.addColorStop(1,ink(0));}
+    else{g.addColorStop(SW0-.02,ink(0));g.addColorStop(SW0+.08,ink(a));g.addColorStop(SW1-.08,ink(a));g.addColorStop(SW1+.02,ink(0));}
+    fxx.fillStyle=g;fxx.fillRect(0,by,W,Math.max(1,k*.6));}
+  rings=rings.filter(function(p){return now-p.t<2000;});
+  rings.forEach(function(p){var q=(now-p.t)/2000;fxx.beginPath();fxx.arc(p.x,p.y,(10+q*(p.dry?60:150))*k,0,6.2832);fxx.strokeStyle=ink(((1-q)*(1-q)*(p.dry?.3:.6)).toFixed(3));fxx.lineWidth=k*.8;fxx.stroke();});
+  var r5=$("s5").getBoundingClientRect(),snowT=(r5.top<vh*.7&&r5.bottom>vh*.3)?1:0;snowAmt+=(snowT-snowAmt)*.03;
+  if(snowAmt>.01)flakes.forEach(function(f){if(!RM){f.y+=f.v*dt;f.x+=Math.sin(now/2600+f.ph)*.00006;if(f.y>1.02){f.y=-.02;f.x=Math.random();}}
+    fxx.beginPath();fxx.arc(f.x*W,f.y*Hh,f.r*k,0,6.2832);fxx.fillStyle=ink((f.a*snowAmt*.6).toFixed(3));fxx.fill();});}
+function smooth(e0,e1,x){var t=Math.min(1,Math.max(0,(x-e0)/(e1-e0)));return t*t*(3-2*t);}
+
+/* ---------- 读数、记忆 ---------- */
+var mark=$("mark"),secs=[].slice.call(document.querySelectorAll("section[data-n]"));
+function computePct(){
+  if(!built)return;var r0=Math.max(0,Math.floor(rowAt(Y.s1))),r1=Math.min(NR,Math.ceil(rowAt(Y.end))),c0=Math.max(0,Math.floor(colAt(0))),c1=Math.min(NC,Math.ceil(colAt(innerWidth)));
+  var d=mx.getImageData(c0,r0,c1-c0,r1-r0).data,w=c1-c0,tot=0,got=0;
+  for(var r=r0;r<r1;r++)for(var c=c0;c<c1;c++){if(!SEA[r*NC+c])continue;tot++;got+=d[((r-r0)*w+(c-c0))*4+3]/255;}
+  pctVal=tot?got/tot*100:0;pctDirty=false;}
+function fmtLat(la){var a=Math.abs(la),deg=Math.floor(a),mn=Math.round((a-deg)*60);if(mn===60){deg++;mn=0;}return (la>=0?T.N:T.S)+deg+"°"+(mn<10?"0":"")+mn+"′"+(la>=0?T.nSuf:T.sSuf);}
+function updateHud(){
+  var p=pctVal.toFixed(1)+"%";$("hudPct").textContent=p;$("livePct").textContent=p;$("hudPings").textContent=state.left;
+  var d=new Date();$("ovCap").textContent=T.ov(d,p);
+  if(built){var beam=scrollY+innerHeight*.55,r=Math.round(rowAt(beam));
+    if(beam>Y.s1&&r>=0&&r<NR){var la=META.latTop-r*META.dRow,z=Z[r*NC+axisCol];$("hudPos").textContent=fmtLat(la)+T.center+(z<0?T.depth(Math.round(-z)):T.land);}
+    else $("hudPos").textContent="";}}
+var KEY="relief-track-v2",saveT;
+function save(){clearTimeout(saveT);saveT=setTimeout(function(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}},500);}
+function load(){try{var s=JSON.parse(localStorage.getItem(KEY)||"null");if(s&&typeof s.lo==="number"){state.lo=s.lo;state.hi=s.hi;state.pings=s.pings||[];state.left=typeof s.left==="number"?s.left:12;}}catch(e){}}
+$("clearTrack").addEventListener("click",function(e){e.stopPropagation();try{localStorage.removeItem(KEY);}catch(err){}state={lo:-1,hi:-1,pings:[],left:12};lastBeam=null;if(ready){build();onScroll();}});
+
+/* ---------- 结尾：你的航迹 ---------- */
+var ov=$("overview"),ox=ov.getContext("2d"),ovLast=0;
+function drawOverview(){
+  if(!built)return;var W=ov.width,Hh=ov.height,cols=3,gap=36,cw=(W-gap*(cols-1))/cols;
+  var r0=Math.max(0,Math.floor(rowAt(Y.s1))),span=(NR-r0)/cols,md=mx.getImageData(0,0,NC,NR).data;
+  var sy=Hh/span,sxl=sy,cvis=cw/sxl,c0=Math.max(0,Math.round(axisCol-cvis*.62));
+  ox.clearRect(0,0,W,Hh);
+  for(var k=0;k<cols;k++){var left=k*(cw+gap),ra=r0+k*span;
+    ox.save();ox.beginPath();ox.rect(left,0,cw,Hh);ox.clip();
+    ox.globalAlpha=.55;ox.drawImage(embC,c0,ra,cvis,span,left,0,cw,Hh);ox.globalAlpha=1;
+    var st=Math.max(3,Math.round(span/95));
+    for(var r=Math.floor(ra);r<ra+span&&r<NR;r+=st){var yb=(r-ra)*sy;ox.beginPath();var on=false;
+      for(var c=c0;c<c0+cvis&&c<NC;c++){var i=r*NC+c,m=md[i*4+3]/255,z=Z[i];
+        if(m>.3&&z<0){var px=left+(c-c0)*sxl,py=yb-(z+3000)*.0038;if(on)ox.lineTo(px,py);else{ox.moveTo(px,py);on=true;}}else on=false;}
+      ox.strokeStyle=ink(.62);ox.lineWidth=.6;ox.stroke();}
+    singleLines.forEach(function(r){if(r<ra||r>=ra+span)return;var yb=(r-ra)*sy;ox.beginPath();var on=false;for(var c=c0;c<c0+cvis&&c<NC;c++){var z=Z[r*NC+c];if(z>=0){on=false;continue;}var px=left+(c-c0)*sxl,py=yb-(z+3000)*.003;if(on)ox.lineTo(px,py);else{ox.moveTo(px,py);on=true;}}ox.strokeStyle=ink(.8);ox.lineWidth=.8;ox.stroke();});
+    ox.setTransform(sxl,0,0,sy,left-c0*sxl,-ra*sy);ox.lineWidth=.7/sxl;ox.strokeStyle=ink(.7);ox.stroke(coastPath);ox.setTransform(1,0,0,1,0,0);
+    ox.restore();
+    ox.font="13px 'IBM Plex Mono', monospace";ox.fillStyle="rgba(124,118,108,.9)";ox.textAlign="left";
+    ox.fillText(fmtLat(META.latTop-ra*META.dRow),left,Hh-8);}
+  if(BOUVET){var kb=2,rb=BOUVET.r-(r0+kb*span),xb=kb*(cw+gap)+(BOUVET.c-c0)*sxl,yb2=rb*sy;ox.fillStyle=ink(.9);ox.beginPath();ox.arc(xb,yb2,3,0,6.2832);ox.fill();
+    ox.font="13px 'IBM Plex Mono', monospace";ox.textAlign="right";ox.fillText(T.bouvet,xb-8,yb2+4);}}
+
+/* ---------- 滚动与循环 ---------- */
+var lastBeam=null;
+function onScroll(){
+  if(!built)return;var vh=innerHeight,beam=scrollY+vh*.55;
+  if(lastBeam===null)lastBeam=beam;if(beam>Y.s1||lastBeam>Y.s1)paintRows(rowAt(Math.max(Y.s1,lastBeam)),rowAt(Math.max(Y.s1,beam)),false);lastBeam=beam;
+  var cur=null;secs.forEach(function(s){if(s.getBoundingClientRect().top<vh*.45)cur=s;});
+  mark.innerHTML=(cur?cur.dataset.n:"·")+"<small>"+(cur?cur.dataset.depth:T.surface)+"</small>";$("hudDepth").textContent=cur?cur.dataset.depth:T.surface;
+  var r5=$("s5").getBoundingClientRect(),read=Math.max(0,vh*.6-r5.top),yrs=Math.round(read/vh*1000/10)*10;
+  if(yrs>maxYears&&r5.bottom>0){maxYears=yrs;$("yrs").textContent=maxYears.toLocaleString("zh-CN");$("mm").textContent=(maxYears/1000*3).toFixed(1);}
+  updateHud();save();dirty=true;}
+var ticking=false;window.addEventListener("scroll",function(){if(!ticking){ticking=true;requestAnimationFrame(function(){ticking=false;onScroll();});}},{passive:true});
+var rz;window.addEventListener("resize",function(){clearTimeout(rz);rz=setTimeout(function(){if(!ready)return;lastBeam=null;build();onScroll();},250);});
+
+var last=performance.now(),pctT=0;
+function frame(now){
+  var dt=Math.min(.05,(now-last)/1000);last=now;
+  if(built){var beamDoc=scrollY+innerHeight*.55,sunT=(beamDoc>Y.s3&&beamDoc<Y.nosun)?1:0,ns=RM?sunT:sunAmt+(sunT-sunAmt)*.02;
+    if(Math.abs(ns-sunAmt)>.002){sunAmt=ns;dirty=true;}else sunAmt=ns;
+    if(dirty){dirty=false;renderSea();}
+    renderFx(now,dt);
+    if(pctDirty&&now-pctT>900){pctT=now;computePct();updateHud();}
+    if(now-ovLast>1500){var rr=ov.getBoundingClientRect();if(rr.top<innerHeight&&rr.bottom>0){drawOverview();ovLast=now;}}}
+  requestAnimationFrame(frame);}
+
+var lastH=0;
+function watchHeight(){if(!ready)return;var h=document.documentElement.scrollHeight;if(Math.abs(h-lastH)>2){lastH=h;lastBeam=null;build();onScroll();}}
+if(window.ResizeObserver)new ResizeObserver(function(){clearTimeout(rz);rz=setTimeout(watchHeight,200);}).observe(document.body);
+window.addEventListener("load",function(){setTimeout(watchHeight,100);});
+function start(){
+  load();requestAnimationFrame(frame);
+  loadData().then(function(res){prep(res[0],res[1]);ready=true;lastH=document.documentElement.scrollHeight;build();lastBeam=null;onScroll();$("loadnote").classList.add("done");})
+  .catch(function(){$("loadnote").textContent=T.fail;body.classList.add("plain");});}
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(function(){setTimeout(start,60);});else window.addEventListener("load",start);
+})();
+</script>
+</body>
+</html>

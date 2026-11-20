@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>浮雕：谁在雕刻这颗星球</title>
+<meta name="description" content="地质、生命与人类，三位雕塑家如何塑造了地球的浮雕。读到哪里，一条真实的大西洋中脊就在纸上显现到哪里。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="浮雕：谁在雕刻这颗星球">
+<meta property="og:description" content="地质、生命与人类，三位雕塑家如何塑造了地球的浮雕。读到哪里，一条真实的大西洋中脊就在纸上显现到哪里。">
+<meta property="og:image" content="https://iehrhei.github.io/relief/og.jpg">
+<meta property="og:url" content="https://iehrhei.github.io/relief/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#eae6de">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="fonts/fonts.css">
+<style>
+/* 纸面版：文章下面是一条真实的海底——大西洋中脊，从北冰洋边缘到布韦岛（NOAA ETOPO 2022）。
+   海底先以素压藏在纸里，测到哪里，就像拓印一样显现在哪里。陆地是已知的，始终以细墨线画出。 */
+:root{
+  --abyss:#eae6de;
+  --ink:#23252a;
+  --muted:#7c766c;
+  --faint:rgba(35,37,42,.16);
+  --signal:#3f5563;
+  --display:"Noto Serif SC","Songti SC","Source Han Serif SC","STSong",serif;
+  --body:"Noto Serif SC","Songti SC","Source Han Serif SC","STSong",serif;
+  --latin:"Cormorant Garamond","Iowan Old Style",Georgia,serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;background:var(--abyss)}
+body{background-attachment:scroll}
+body{margin:0;background:var(--abyss);color:var(--ink);font-family:var(--body);font-weight:300;font-size:18px;line-height:1.95;overflow-x:hidden}
+canvas.fixed{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}
+#sea{z-index:0}
+#fx{z-index:1}
+body.plain canvas.fixed,body.plain .hud{display:none}
+
+.page{position:relative;z-index:2;display:grid;
+  grid-template-columns:minmax(16px,1fr) 7rem minmax(0,34rem) minmax(0,14rem) minmax(16px,1.4fr);column-gap:2.5rem;
+  text-shadow:0 0 2px rgba(236,231,221,.95),0 0 10px rgba(236,231,221,.85)}
+.page > *{grid-column:3}
+.rail{grid-column:2;grid-row:1 / span 999;position:relative}
+.rail .mark{position:sticky;top:42vh;font-family:var(--latin);font-style:italic;font-weight:300;font-size:2.6rem;line-height:1;color:var(--muted);text-align:right}
+.rail .mark small{display:block;font-family:var(--mono);font-style:normal;font-size:.62rem;letter-spacing:.14em;margin-top:.6rem}
+
+header.hero{padding:18vh 0 30vh}
+.kicker{font-family:var(--mono);font-size:.72rem;letter-spacing:.18em;color:var(--muted);margin:0 0 2.2rem}
+h1{font-family:var(--display);font-weight:300;font-size:clamp(2.6rem,6vw,4.4rem);line-height:1.18;letter-spacing:.08em;margin:0;text-wrap:balance}
+h1 .sub{display:block;font-size:.42em;letter-spacing:.32em;margin-top:1.1rem;color:var(--muted)}
+.lead-anchor{height:0}
+.dek{font-size:1.06rem;line-height:2;margin:2.4rem 0 0;color:var(--muted);max-width:30rem}
+.howto{font-family:var(--mono);font-size:.7rem;letter-spacing:.05em;line-height:1.95;color:var(--muted);margin:2.8rem 0 0;padding-top:1rem;border-top:1px solid var(--faint);max-width:30rem}
+
+section{padding:5rem 0 2rem}
+h2{font-family:var(--display);font-weight:400;font-size:1.35rem;letter-spacing:.12em;margin:0 0 2rem;text-wrap:balance;display:flex;gap:1rem;align-items:baseline}
+h2 .n{font-family:var(--latin);font-style:italic;font-weight:300;font-size:1.6rem;color:var(--muted);min-width:2.4rem}
+p{margin:0 0 1.35rem}
+p.solo{font-size:1.08rem;margin:2.6rem 0;letter-spacing:.04em}
+em.l{font-family:var(--latin);font-style:italic;font-size:1.12em}
+.latin{font-family:var(--latin);font-size:1.08em}
+.live{font-family:var(--mono);font-size:.92em;color:var(--signal)}
+figure{margin:2.6rem 0 2.8rem}
+figure.wide{grid-column:3 / span 2}
+figcaption{font-family:var(--mono);font-size:.68rem;line-height:1.8;letter-spacing:.03em;color:var(--muted);margin-top:.9rem;max-width:34rem}
+section{position:relative}
+.aside{font-family:var(--mono);font-size:.68rem;line-height:1.9;color:var(--muted);position:absolute;left:calc(100% + 2.5rem);top:9rem;width:12rem}
+.glyph{font-family:var(--display);font-weight:600;font-size:clamp(7rem,22vw,13rem);line-height:1;color:#ebe6dc;user-select:none;margin:1.2rem 0 0;text-shadow:none}
+body.plain .glyph{color:var(--muted)}
+
+#overview{width:100%;height:auto;display:block;background:transparent;border-top:1px solid var(--faint);border-bottom:1px solid var(--faint)}
+#ovCap{color:var(--signal)}
+.hud{position:fixed;right:16px;bottom:14px;z-index:5;font-family:var(--mono);font-size:.66rem;letter-spacing:.06em;line-height:1.75;color:var(--muted);text-align:right;pointer-events:none;text-shadow:0 0 4px #ece7dd,0 0 10px #ece7dd}
+.hud b{font-weight:400;color:var(--signal)}
+.controls{position:fixed;top:14px;right:16px;z-index:10;display:flex;gap:.5rem}
+@media (max-width:900px){.controls{top:auto;bottom:12px;left:12px;right:auto}.controls button{padding:.35rem .65rem;font-size:.62rem}.hud{bottom:10px;right:12px;font-size:.58rem}}
+.controls button,.textbtn{font-family:var(--mono);font-size:.68rem;letter-spacing:.1em;background:rgba(236,231,221,.75);color:var(--muted);border:1px solid var(--faint);padding:.45rem .8rem;border-radius:999px;cursor:pointer}
+.controls button:hover,.textbtn:hover{color:var(--ink)}
+button:focus-visible,a:focus-visible{outline:1px solid var(--signal);outline-offset:3px}
+
+.sources{font-family:var(--mono);font-size:.66rem;line-height:1.9;color:var(--muted);padding:5rem 0 10rem}
+.sources h3{font-family:var(--mono);font-weight:400;font-size:.66rem;letter-spacing:.18em;margin:0 0 1rem}
+.sources ol{margin:0;padding-left:1.4rem}
+.sources a{color:inherit;text-decoration-color:var(--faint);text-underline-offset:3px}
+.sources a:hover{color:var(--ink)}
+
+
+figure.plate{margin:2.8rem 0 3rem}
+figure.plate.narrow{max-width:20rem}
+figure.plate img{display:block;width:100%;height:auto;mix-blend-mode:multiply;filter:sepia(.18) contrast(.96);opacity:0;transform:translateY(6px);transition:opacity 2.6s ease,transform 2.6s ease,filter 2.6s ease}
+figure.plate.shown img{opacity:.9;transform:none}
+figure.plate:not(.shown) img{filter:sepia(.18) contrast(.6) blur(1.5px)}
+.credit{display:block;margin-top:.35rem;opacity:.8}
+.credit a,.archive a{color:inherit;text-decoration-color:var(--faint);text-underline-offset:3px}
+.credit a:hover,.archive a:hover{color:var(--ink)}
+p.archive{font-family:var(--mono);font-size:.66rem;line-height:1.85;color:var(--muted);margin:-.4rem 0 1.8rem;padding-left:.9rem;border-left:1px solid var(--faint)}
+body.plain figure.plate img,html.noobs figure.plate img{opacity:.9;transform:none;filter:none}
+@media (max-width:900px){
+  .page{grid-template-columns:16px minmax(0,1fr) 16px;column-gap:0}
+  .page > *,figure.wide,.aside{grid-column:2}
+  .rail{display:none}
+  .aside{position:static;width:auto;margin:-1rem 0 2rem}
+  body{font-size:17px}
+}
+.loadnote{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:6;font-family:var(--mono);font-size:.66rem;letter-spacing:.08em;color:var(--muted);transition:opacity 1.2s}
+.loadnote.done{opacity:0}
+</style>
+</head>
+<body>
+<canvas id="sea" class="fixed" aria-hidden="true"></canvas>
+<canvas id="fx" class="fixed" aria-hidden="true"></canvas>
+<div class="loadnote" id="loadnote">正在铺开海底 · ETOPO 2022</div>
+<div class="controls"><button id="plain" type="button" aria-pressed="false">纯文字</button><button id="sound" type="button" aria-pressed="false">声音 · 关</button></div>
+<div class="hud" aria-live="off"><span id="hudDepth">海面</span><br><span id="hudPos"></span><br>声呐 <b id="hudPings">12</b> / 12<br>你已测绘这片海底的 <b id="hudPct">0.0%</b></div>

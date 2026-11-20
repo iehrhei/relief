@@ -1,15 +1,17 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>浮雕：谁在雕刻这颗星球</title>
-<meta name="description" content="地质、生命与人类，三位雕塑家如何塑造了地球的浮雕。读到哪里，一条真实的大西洋中脊就在纸上显现到哪里。">
+<title>Relief: Who Carves the Earth</title>
+<meta name="description" content="Rock, water and life: how three sculptors carved the relief of the Earth. As you read, a real strip of the Mid-Atlantic Ridge comes up on the paper like a rubbing.">
 <meta property="og:type" content="article">
-<meta property="og:title" content="浮雕：谁在雕刻这颗星球">
-<meta property="og:description" content="地质、生命与人类，三位雕塑家如何塑造了地球的浮雕。读到哪里，一条真实的大西洋中脊就在纸上显现到哪里。">
+<meta property="og:title" content="Relief: Who Carves the Earth">
+<meta property="og:description" content="Rock, water and life: how three sculptors carved the relief of the Earth. As you read, a real strip of the Mid-Atlantic Ridge comes up on the paper like a rubbing.">
 <meta property="og:image" content="https://iehrhei.github.io/relief/og.jpg">
 <meta property="og:url" content="https://iehrhei.github.io/relief/">
+<link rel="alternate" hreflang="en" href="https://iehrhei.github.io/relief/">
+<link rel="alternate" hreflang="zh-CN" href="https://iehrhei.github.io/relief/zh/">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#eae6de">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
@@ -106,176 +108,188 @@ body.plain figure.plate img,html.noobs figure.plate img{opacity:.9;transform:non
 }
 .loadnote{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:6;font-family:var(--mono);font-size:.66rem;letter-spacing:.08em;color:var(--muted);transition:opacity 1.2s}
 .loadnote.done{opacity:0}
+.controls a.lang{font-family:var(--mono);font-size:.68rem;letter-spacing:.1em;background:rgba(236,231,221,.75);color:var(--muted);border:1px solid var(--faint);padding:.45rem .8rem;border-radius:999px;text-decoration:none;line-height:1.2}
+.controls a.lang:hover{color:var(--ink)}
+@media (max-width:900px){.controls a.lang{padding:.35rem .65rem;font-size:.62rem}}
+html[lang="en"]{--display:"Cormorant Garamond","Iowan Old Style",Georgia,serif}
+html[lang="en"] body{font-size:17.5px;line-height:1.85;hyphens:auto;-webkit-hyphens:auto}
+html[lang="en"] h1{font-weight:300;letter-spacing:.01em;font-size:clamp(3rem,7.5vw,5.4rem)}
+html[lang="en"] h1 .sub{font-style:italic;letter-spacing:.02em;font-size:.4em;margin-top:.6rem}
+html[lang="en"] h2{font-weight:400;letter-spacing:.01em;font-size:1.7rem}
+html[lang="en"] .glyph{font-family:"Noto Serif SC",serif}
+html[lang="en"] .dek{font-size:1.08rem;line-height:1.85}
+html[lang="en"] .howto{letter-spacing:0}
+html[lang="en"] p.solo{letter-spacing:0;font-size:1.12rem}
 </style>
 </head>
 <body>
 <canvas id="sea" class="fixed" aria-hidden="true"></canvas>
 <canvas id="fx" class="fixed" aria-hidden="true"></canvas>
-<div class="loadnote" id="loadnote">正在铺开海底 · ETOPO 2022</div>
-<div class="controls"><button id="plain" type="button" aria-pressed="false">纯文字</button><button id="sound" type="button" aria-pressed="false">声音 · 关</button></div>
-<div class="hud" aria-live="off"><span id="hudDepth">海面</span><br><span id="hudPos"></span><br>声呐 <b id="hudPings">12</b> / 12<br>你已测绘这片海底的 <b id="hudPct">0.0%</b></div>
+<div class="loadnote" id="loadnote">Laying out the seafloor · ETOPO 2022</div>
+<div class="controls"><a class="lang" href="zh/index.html" hreflang="zh-CN" lang="zh-CN">中文</a><button id="plain" type="button" aria-pressed="false">Text only</button><button id="sound" type="button" aria-pressed="false">Sound · off</button></div>
+<div class="hud" aria-live="off"><span id="hudDepth">sea surface</span><br><span id="hudPos"></span><br>pings <b id="hudPings">12</b> / 12<br>seafloor mapped <b id="hudPct">0.0%</b></div>
 <main class="page">
-  <div class="rail" aria-hidden="true"><div class="mark" id="mark">·<small>海面</small></div></div>
+  <div class="rail" aria-hidden="true"><div class="mark" id="mark">·<small>sea surface</small></div></div>
 
   <header class="hero" id="hero">
     <p class="kicker">RELIEF · 2026</p>
-    <h1>浮雕<span class="sub">谁在雕刻这颗星球</span></h1>
+    <h1>Relief<span class="sub">Who Carves the Earth</span></h1>
     <div class="lead-anchor" id="leadAnchor" aria-hidden="true"></div>
-    <p class="dek">板块、流水与生命，花了四十亿年雕刻一颗行星的表面。我们认识的，只是露在空气里的那一小部分；其余的大半，至今还没有人真正看清。</p>
-    <p class="howto">这篇文章下面是一条真实的海底：大西洋中脊，从北冰洋边缘出发，经过冰岛、亚速尔群岛，一路向南到布韦岛，长约一万五千公里。它先以素压的方式藏在纸里，只留下极淡的起伏，相当于卫星推算出的模糊轮廓。屏幕中间那道细线是声呐，读到哪里，海底就像拓印一样在哪里显现。陆地早已为人所知，始终用细墨线画着。你另有 12 次声呐，可以点在两侧的空白处。声音默认关闭；右上角也可以切换成纯文字。</p>
+    <p class="dek">Plates, water and life have spent four billion years carving the surface of a planet. We know the small part that stands in the air. Most of it, no one has yet seen clearly.</p>
+    <p class="howto">Beneath this essay lies a real seafloor: the Mid-Atlantic Ridge, from the edge of the Arctic Ocean past Iceland and the Azores, south to Bouvet Island, some 15,000 kilometers long. At first it is only blind-embossed into the paper, a faint relief about as blurred as what satellites can infer. The thin line across the middle of the screen is the sonar: wherever you read, the seafloor comes up like a rubbing. Land has long been known, so it is always drawn in fine ink. You also have 12 pings of your own to place in the margins. Sound is off by default, and you can switch to text only.</p>
   </header>
 
-  <section data-n="I" data-depth="单波束回声测深" id="s1">
-    <h2><span class="n">I</span>山脊上的一道凹痕</h2>
-    <p>1952 年，哈德逊河畔，哥伦比亚大学拉蒙特地质观测站。地质学家玛丽·萨普（Marie Tharp）把六条长长的剖面图并排铺开。每一条都是一艘船横渡大西洋的记录：声波向下发出，在海底弹回，往返的时间换算成深度，一个个深度连起来，就是一条起伏如影的曲线。</p>
-    <figure class="plate wide"><img src="img/maury.jpg" width="1280" height="977" alt="莫里 1854 年绘制的北大西洋水深图" loading="lazy" decoding="async">
-      <figcaption>在声呐出现之前，深度是用绳子量出来的。美国海军的马修·莫里（Matthew Fontaine Maury）依据零星的铅锤测深，于 1854 年画出这张北大西洋水深图，它常被视为第一张大洋盆地水深图。图中央那片较浅的海底，后来被证实是大西洋中脊的一部分。<span class="credit">Matthew Fontaine Maury, 1854 · NOAA Central Library Historical Collection · 公有领域 · <a href="https://commons.wikimedia.org/wiki/File:Maury_1854_Bathymetric_Chart_pl23_map00002.jpg">来源 ↗</a></span></figcaption></figure>
-    <p>她从未亲眼见过那片海底。那时，拉蒙特的科考船还不让女性上船，她的工作，就是把同事带回来的数字画成地形。六条剖面对齐之后，怪事出现了：各条剖面上的山峰彼此对不上，但在大西洋中脊的正中央，每一条都有同一个东西：一道 V 形的凹槽。</p>
-    <p>她认为那是一条裂谷——海底正从这里被拉开，新的岩石从下方涌出。这等于说，大陆在移动。而在 20 世纪 50 年代初的美国，大陆漂移说几乎是个笑话。她的合作者布鲁斯·希曾（Bruce Heezen）把这个想法斥为「女人家的胡言乱语」（girl talk）。</p>
-    <p>她没有退让，只是继续画。后来，大西洋地震的震中被标在同一张图上，它们恰好整整齐齐地落进了她画的那道凹槽。不到一年，希曾被说服了。此后，她顺着这条裂谷一路追进南大西洋、印度洋和红海。裂谷沿着一条环绕整个地球的山脉脊线延伸——那是地球上最长的山脉，绵延近 65,000 公里，九成以上沉在水下。</p>
-    <p>地球上最大的一道浮雕，它正中央的裂缝，最初是由一个不被允许出海的人画出来的。她坐在桌前，一笔一线地工作。她不是用眼睛看见它的，而是通过回声。</p>
-    <p class="archive">萨普自己讲述的这段往事，见哥伦比亚大学气候学院转载的回忆文章：<a href="https://news.climate.columbia.edu/2020/07/24/marie-tharp-connecting-dots/">Connect the Dots ↗</a></p>
-    <figcaption>到这里为止，声呐每次只记下一条线，就像萨普手里的剖面。这些剖面取自真实的海底：格陵兰与斯瓦尔巴之间，再向南到冰岛。往回翻，每一条线上，中脊的裂谷都落在同一处。</figcaption>
+  <section data-n="I" data-depth="single-beam echo sounding" id="s1">
+    <h2><span class="n">I</span>A Notch in the Ridge</h2>
+    <p>In 1952, at Columbia University's Lamont Geological Observatory on the Hudson, a geologist named Marie Tharp laid six long profiles side by side. Each was the trace of a ship crossing the Atlantic: a ping of sound sent down, bounced off the seabed, timed on its return, converted into depth, joined into a line of rising and falling shadow.</p>
+    <figure class="plate wide"><img src="img/maury.jpg" width="1280" height="977" alt="Matthew Fontaine Maury's 1854 bathymetric chart of the North Atlantic" loading="lazy" decoding="async">
+      <figcaption>Before sonar, depth was measured with rope. Working from scattered lead-line soundings, Matthew Fontaine Maury of the US Navy drew this chart of the North Atlantic in 1854. It is often called the first bathymetric chart of an ocean basin. The shallower ground in the middle was later recognized as part of the Mid-Atlantic Ridge.<span class="credit">Matthew Fontaine Maury, 1854 · NOAA Central Library Historical Collection · Public domain · <a href="https://commons.wikimedia.org/wiki/File:Maury_1854_Bathymetric_Chart_pl23_map00002.jpg">Source ↗</a></span></figcaption></figure>
+    <p>She had never seen that seafloor. Women were not yet allowed on Lamont's research cruises, so her work was to turn the numbers her colleagues brought home into landscape. When the six profiles were aligned, something odd appeared. The individual peaks did not match. But in the dead center of the Mid-Atlantic Ridge, every profile showed the same thing: a V-shaped notch.</p>
+    <p>She thought it was a rift valley, a seam where the ocean floor was being pulled apart and new rock was welling up from below. That would mean the continents were moving, and in America in the early 1950s continental drift was close to a joke. Her collaborator, Bruce Heezen, dismissed the idea as "girl talk."</p>
+    <p>She did not back down. She kept drawing. When the epicenters of Atlantic earthquakes were plotted on the same sheet, they fell neatly into her notch, and within a year Heezen was convinced. Later she followed the rift into the South Atlantic, the Indian Ocean, the Red Sea. It runs down the spine of a mountain range that wraps the whole planet, the longest on Earth, nearly 65,000 kilometers, more than ninety percent of it underwater.</p>
+    <p>The crack at the heart of the largest relief on Earth was first drawn by someone who was not allowed to go to sea, sitting at a desk, working line by line. She did not see it with her eyes. She saw it with echoes.</p>
+    <p class="archive">Tharp's own account of these years is reprinted by the Columbia Climate School: <a href="https://news.climate.columbia.edu/2020/07/24/marie-tharp-connecting-dots/">Connect the Dots ↗</a></p>
+    <figcaption>Up to this point the sonar records a single line at a time, like Tharp's profiles. These are cut from the real seafloor, between Greenland and Svalbard and south toward Iceland. Scroll back up: on every line, the ridge's rift falls in the same place.</figcaption>
   </section>
 
-  <section data-n="II" data-depth="多波束测深" id="s2">
-    <h2><span class="n">II</span>浮起</h2>
-    <p>地理学家把地表的高低起伏叫作 relief。这个词借自雕塑，词根是拉丁语 <em class="l">relevare</em>，意为「抬起」；到了意大利语里变成 <em class="l">rilievo</em>，指从平整底面上凸起的形象。中文译作「浮雕」：形象仿佛是自己从石头里浮上来的，而不是被人凿出来的。</p>
+  <section data-n="II" data-depth="multibeam sounding" id="s2">
+    <h2><span class="n">II</span>To Rise</h2>
+    <p>Geographers call the ups and downs of the Earth's surface its <em class="l">relief</em>. They borrowed the word from sculptors. Its root is the Latin <em class="l">relevare</em>, to raise; in Italian it became <em class="l">rilievo</em>, a figure lifted out of a flat ground. Chinese renders it as 浮雕, <em class="l">fu diao</em>, "floating carving": as if the figure drifted up out of the stone on its own, rather than being cut free.</p>
     <div class="glyph" id="glyph" aria-hidden="true">浮</div>
-    <figcaption style="margin-top:0;margin-bottom:2.4rem">移动指针，换一个方向的光。从这一章起，声呐换成一整扇波束，测过的海底会像拓印一样显现在纸上。</figcaption>
-    <p>西方浮雕史上最轻的一次「浮起」，发生在 1417 年前后的佛罗伦萨。在奥尔桑米凯莱教堂（Orsanmichele）外壁的圣乔治像下方，多纳泰罗（Donatello）刻了一块大理石浮雕，描绘圣乔治屠龙。刀痕只有几毫米深，画面却有纵深：骑士与恶龙在前景最为突出，越往远处形体越薄，到远景只剩下石面上的几道线条。这种技法后来被称为 <em class="l">rilievo schiacciato</em>，即「压扁浮雕」。记下这个术语的瓦萨里（Vasari）把它比作铸币：钢模压进币坯，留下永久的印痕。</p>
-    <figure class="plate wide"><img src="img/donatello.jpg" width="960" height="293" alt="多纳泰罗《圣乔治屠龙》压扁浮雕" loading="lazy" decoding="async">
-      <figcaption>多纳泰罗，《圣乔治屠龙》，约 1417 年。摄于佛罗伦萨奥尔桑米凯莱教堂外壁；原件现藏巴杰罗国家博物馆。注意远处的建筑与树：它们几乎只是石面上的划痕。<span class="credit">摄影：Sailko · CC BY 2.5（已转为灰度） · <a href="https://commons.wikimedia.org/wiki/File:Orsanmichele,_san_giorgio_e_la_principessa_di_donatello.jpg">来源 ↗</a></span></figcaption></figure>
-    <p>理解大地的浮雕，同样要从「压」字开始。印度板块挤进亚洲，喜马拉雅山脉由此隆起；冰盖压在大陆上，地壳随之下沉。这是塑，一种做加法的艺术。接下来是刻：河流、冰川、风与雨接过凿子，切出峡谷与峡湾，把山峰磨圆。然后是透：雨水溶开石灰岩，海浪凿穿岬角，留下溶洞、天生桥与海蚀拱门。</p>
-    <p>一组力量把大地抬起，另一组力量不停地磨损它。我们眼前的每一座山，都是这场漫长角力中的一个瞬间。</p>
+    <figcaption style="margin-top:0;margin-bottom:2.4rem">浮, <em>fu</em>, to float. Move your pointer to change the direction of the light. From this chapter on, the sonar becomes a full fan of beams, and the measured seafloor comes up on the paper like a rubbing.</figcaption>
+    <p>The lightest lift in the history of Western relief happened in Florence around 1417. Beneath his statue of Saint George on the outside of Orsanmichele, Donatello carved a marble panel of the saint fighting the dragon. The cuts are only millimeters deep, yet the scene opens into perspective: the knight and dragon thickest in the foreground, the forms thinning as they recede until the distance is little more than lines scratched into the surface. The technique came to be called <em class="l">rilievo schiacciato</em>, "flattened" or "squashed" relief. Vasari, who recorded the term, likened it to the striking of coins, a die pressed into a blank to leave a permanent impression.</p>
+    <figure class="plate wide"><img src="img/donatello.jpg" width="960" height="293" alt="Donatello's Saint George and the Dragon, a flattened relief" loading="lazy" decoding="async">
+      <figcaption>Donatello, <em>Saint George and the Dragon</em>, about 1417. Photographed on the outside of Orsanmichele, Florence; the original is now in the Museo Nazionale del Bargello. Look at the buildings and trees in the distance: they are barely more than scratches in the stone.<span class="credit">Photo: Sailko · CC BY 2.5 (converted to grayscale) · <a href="https://commons.wikimedia.org/wiki/File:Orsanmichele,_san_giorgio_e_la_principessa_di_donatello.jpg">Source ↗</a></span></figcaption></figure>
+    <p>Pressure is the first word for understanding the Earth's relief, too. India pressed into Asia and the Himalaya rose; ice sheets pressed down on continents and the crust sank beneath them. That is modeling, the additive art. Then comes carving: rivers, glaciers, wind and rain take up the chisel, cutting canyons and fjords, rounding off peaks. Then piercing: rain dissolves limestone and waves bore through headlands, leaving caves, natural bridges and sea arches.</p>
+    <p>One set of forces lifts the land. Another wears it down. Every mountain in front of us is a single frame of that long contest.</p>
   </section>
 
-  <section data-n="III" data-depth="一轮想象的太阳" id="s3">
-    <h2><span class="n">III</span>一轮被想象出来的太阳</h2>
-    <p>在等高线普及之前，要想最老实地呈现群山的形状，最好的办法就是把山搬进屋里。</p>
-    <p>弗朗茨·路德维希·普菲弗·冯·维尔（Franz Ludwig Pfyffer von Wyher）是卢塞恩的贵族，早年在法军任军官，在卢浮宫见过法王收藏的要塞沙盘。回乡之后，他开始测绘卢塞恩湖一带的山，从 1762 年做到 1786 年，历时二十四年，最终完成了后来被称为「原瑞士浮雕」（<span class="latin">Relief der Urschweiz</span>）的作品。</p>
-    <p>这块浮雕长约 6.6 米、宽约 3.9 米，用石膏混合炭粉、黏土、沥青和碎砖堆成，表面再涂一层彩蜡，把约 4,100 平方公里的湖泊与山峰装进了一间屋子。欧洲各地的学者专程赶来俯瞰它。在人类学会飞行之前，这大概就是最接近鸟瞰的视角了。两个多世纪后，苏黎世联邦理工学院的研究者用摄影测量重建了它，发现它的高程与现代地图只差了大约六十米。</p>
-    <p class="archive">原瑞士浮雕今天陈列在卢塞恩冰川公园（Gletschergarten）。它的测绘史见 <a href="https://kartengeschichte.ch/ch/summaries/e18b.html">Cartographica Helvetica ↗</a></p>
-    <p>另一种办法，是把浮雕的影子画在平面上。瑞士制图师爱德华·伊姆霍夫（Eduard Imhof）把地形晕渲发展成了一门艺术。1925 年，他在苏黎世联邦理工学院创办了世界上第一个大学地图学研究所；1965 年，他出版了后来以英文名 <em class="l">Cartographic Relief Presentation</em> 为人所知的著作，制图师至今还在研读。他用炭笔和喷笔手绘山体。最低的山谷离观看者最远，他便刻意压低那里的明暗对比，就像画家处理远山间的空气。</p>
-    <p>所有地形晕渲都依赖一个前提：必须有一轮太阳。光从某个方向照来，山的一面明亮、一面落入阴影，山的形体才会从纸面上浮现出来。</p>
-    <p class="solo" id="nosun">深海没有太阳。</p>
-    <p>1977 年，萨普与希曾决定把几十年积累的测深数据汇成一张完整的全球海底图。他们没有请制图员，而是找来了奥地利画家海因里希·贝兰（Heinrich Berann）——一位以阿尔卑斯山全景图闻名的艺术家。这个毕生描绘雪峰的人，为一片从未见过阳光的地形安上了太阳。</p>
-    <p>在他的画里，洋中脊像棒球上的缝线一样缠绕地球，断裂带横切其间，海山投下各自的影子。这些影子是想象出来的，但山是真的。</p>
-    <p>这幅原画宽近两米，如今藏于美国国会图书馆。希曾没能等到它付印：就在几个月前，他在冰岛以南的一次潜艇考察中去世了。</p>
-    <p class="archive">贝兰的原画仍受版权保护，未能收入本页。它的高清扫描可以在 <a href="https://www.loc.gov/item/2010586277/">美国国会图书馆 ↗</a> 查看。</p>
+  <section data-n="III" data-depth="an invented sun" id="s3">
+    <h2><span class="n">III</span>An Invented Sun</h2>
+    <p>Before contour lines were common, the most honest way to convey the shape of mountains was to bring the mountains indoors.</p>
+    <p>Franz Ludwig Pfyffer von Wyher, a Lucerne patrician, served as an officer in the French army and saw the royal collection of fortress relief models in the Louvre. Back home, he surveyed the mountains around Lake Lucerne and worked from 1762 to 1786, twenty-four years, on what became the <span class="latin"><em>Relief der Urschweiz</em></span>.</p>
+    <p>It measures about 6.6 by 3.9 meters: plaster mixed with powdered charcoal, clay, pitch and crushed brick, its surface finished in colored wax, folding some 4,100 square kilometers of lakes and peaks into a single room. Scholars traveled from across Europe to look down on it. Before flight, this was about as close to a bird's-eye view as anyone could get. More than two centuries later, researchers at ETH Zurich rebuilt it photogrammetrically and found its heights off from modern maps by only about sixty meters.</p>
+    <p class="archive">The relief is on display today at the Gletschergarten in Lucerne. Its survey history: <a href="https://kartengeschichte.ch/ch/summaries/e18b.html">Cartographica Helvetica ↗</a></p>
+    <p>The other way is to paint relief's shadow onto a flat sheet. The Swiss cartographer Eduard Imhof turned hill shading into an art. In 1925 he founded, at ETH Zurich, the world's first academic institute for cartography; in 1965 he published the book now known in English as <em class="l">Cartographic Relief Presentation</em>, which mapmakers still read. His mountains were worked up by hand in charcoal and airbrush. Because the lowest valleys lie farthest from the viewer, he deliberately softened their contrast, the way a painter handles the air in a distance.</p>
+    <p>All shaded relief depends on one premise. There has to be a sun. Light must arrive from some direction, so that one face of a mountain brightens and the other falls into shadow, and only then does the form rise off the page.</p>
+    <p class="solo" id="nosun">The deep sea has no sun.</p>
+    <p>In 1977, Tharp and Heezen set out to turn decades of soundings into a single map of the entire ocean floor. They did not hire a draftsman. They hired Heinrich Berann, an Austrian painter famous for his panoramas of the Alps. A man who had spent his life painting snow peaks gave a sun to a landscape that had never known light.</p>
+    <p>In his painting the mid-ocean ridge winds around the globe like the seam on a baseball, fracture zones slice across it, seamounts cast their shadows. The shadows are invented. The mountains are real.</p>
+    <p>The original, nearly two meters wide, is now in the Library of Congress. Heezen did not live to see it printed. Months before, he died on a submarine expedition south of Iceland.</p>
+    <p class="archive">Berann's painting is still under copyright and is not reproduced here. A high-resolution scan is at the <a href="https://www.loc.gov/item/2010586277/">Library of Congress ↗</a></p>
   </section>
 
-  <section data-n="IV" data-depth="洋中脊侧翼" id="s4">
-    <h2><span class="n">IV</span>第三位雕塑家</h2>
-    <p>板块负责塑，流水负责刻。但还有第三位雕塑家，它的工具最小，接下的活却最漫长。</p>
-    <p>达尔文最后一部科学著作，研究的不是物种，而是蚯蚓。1881 年 10 月，也就是他去世前半年，《蚯蚓作用下腐殖土的形成》（<em class="l">The Formation of Vegetable Mould, Through the Action of Worms</em>）出版。这个课题，他已经想了五十多年。</p>
-    <p>晚年的清晨，他常和孩子们走进凉爽潮湿的草地，看蚯蚓做了些什么。他称量蚯蚓排出的粪粒，算出一英亩地里，蚯蚓每年翻动的泥土以吨计。罗马时代的地砖、田野里的石块，都在一代代蚯蚓的吞食和排泄中慢慢下沉。生态学家还要再过一个世纪，才造出「生物扰动」（bioturbation）这个词。我们脚下的每一寸表土，都曾穿过一条蚯蚓的身体。</p>
-    <figure class="plate narrow"><img src="img/darwin.jpg" width="960" height="1183" alt="达尔文书中的塔状蚯蚓粪堆插图" loading="lazy" decoding="async">
-      <figcaption>达尔文《蚯蚓作用下腐殖土的形成》（1881）图 2：法国尼斯附近，蚯蚓用排出的泥土堆起的一座塔状小丘。<span class="credit">Charles Darwin, 1881 · 公有领域 · <a href="https://commons.wikimedia.org/wiki/File:Vegetable_Mould_and_Worms_figure_2.png">来源 ↗</a></span></figcaption></figure>
-    <p>多佛白崖高约 110 米。晚白垩世，大约 8,900 万到 8,500 万年前，全球海平面比今天高出两百多米，这里是一片温暖的浅海。海面上漂着一种叫颗石藻的单细胞藻类，每个细胞都披着一层由微小方解石片拼成的铠甲。它们死后，石片如雪花般飘落，在海底积成白色软泥。软泥变成白垩，白垩又被抬出海面，成了今天的悬崖。崖壁上的黑色条带是燧石，其余的白，是无数生命脱下的衣裳。</p>
-    <figure class="plate narrow"><img src="img/coccolith.jpg" width="960" height="768" alt="颗石藻的扫描电镜照片" loading="lazy" decoding="async">
-      <figcaption>颗石藻 Coccolithus pelagicus 的扫描电镜照片。白垩，就是由这样的方解石小片一层层积成的。<span class="credit">Richard Lampitt, Jeremy Young, The Natural History Museum, London · CC BY 2.5（已转为灰度） · <a href="https://commons.wikimedia.org/wiki/File:Coccolithus_pelagicus.jpg">来源 ↗</a></span></figcaption></figure>
-    <p>大堡礁绵延近 2,300 公里，由约 3,000 座珊瑚礁和 900 座岛屿组成，是地球上最大的生物建造结构。珊瑚虫不断把自己的骨骼往上堆，新的生命长在已经死去的部分之上。所以，这整块浮雕真正活着的，只有最外面薄薄的一层。</p>
-    <p>1994 年，生态学家克莱夫·琼斯（Clive Jones）、约翰·劳顿（John Lawton）和莫谢·沙查克（Moshe Shachak）为这类生物起了一个名字：「生态系统工程师」（ecosystem engineers）。灵感部分来自内盖夫沙漠里一种会啃食岩石的蜗牛。他们把工程师分成两类：一类用自己的身体改变世界，比如珊瑚和树木；另一类通过改动别的物质来改变世界，比如筑坝的河狸。前者是塑，后者是刻。生命同时实践着这两种艺术。</p>
-    <p>即使在没有光的地方，生命也在雕刻。</p>
-    <p id="lostcity">2000 年 12 月，潜水器「阿尔文」号（Alvin）在大西洋中脊以西一座海底山的山肩上，水下七百多米处，发现了一片乳白色的塔林。地幔岩石与海水发生反应，释放出氢气和甲烷，碳酸盐一层层沉淀，堆成一根根烟囱。有些只有蘑菇大小，最高的一座名叫波塞冬（Poseidon），高达六十多米。</p>
-    <p>这里就是「失落之城」（Lost City）。它已经喷涌了至少十二万年，靠化学能生存的微生物密密地住在它的裂隙里。一些科学家认为，地球上的生命可能就起源于这样的地方。如果真是这样，第三位雕塑家的第一间工作室，就是一座从未见过太阳的石头之城。</p>
-    <figure class="plate"><img src="img/lostcity.jpg" width="600" height="394" alt="失落之城的碳酸盐烟囱" loading="lazy" decoding="async">
-      <figcaption>2000 年 12 月，失落之城被发现时拍下的照片：一座烟囱侧面约 1.5 米宽的突出平台上，长满了枝状的碳酸盐。<span class="credit">National Science Foundation（University of Washington / Woods Hole Oceanographic Institution）· 公有领域 · <a href="https://commons.wikimedia.org/wiki/File:Lost_City_(hydrothermal_field)02.jpg">来源 ↗</a></span></figcaption></figure>
+  <section data-n="IV" data-depth="ridge flank" id="s4">
+    <h2><span class="n">IV</span>The Third Sculptor</h2>
+    <p>The plates do the modeling; water does the carving. But there is a third sculptor, with the smallest tools and the longest commission.</p>
+    <p>Darwin's last scientific book was not about species but about earthworms. <em class="l">The Formation of Vegetable Mould, Through the Action of Worms</em> appeared in October 1881, six months before his death, on a subject he had been turning over for more than fifty years.</p>
+    <p>Late in life he and his children would walk out into the cool, damp grass in the early mornings to see what the worms had been doing. He weighed their castings and calculated that, on a single acre, worms turn over tons of earth each year. Roman floors and fieldstones sink slowly beneath generations of their swallowing and casting. Ecologists would not coin the word <em class="l">bioturbation</em> for another century. Every inch of topsoil under our feet has passed through the body of a worm.</p>
+    <figure class="plate narrow"><img src="img/darwin.jpg" width="960" height="1183" alt="Darwin's illustration of a tower-like worm casting" loading="lazy" decoding="async">
+      <figcaption>Darwin, <em>The Formation of Vegetable Mould</em> (1881), figure 2: a tower-like casting built by worms near Nice.<span class="credit">Charles Darwin, 1881 · Public domain · <a href="https://commons.wikimedia.org/wiki/File:Vegetable_Mould_and_Worms_figure_2.png">Source ↗</a></span></figcaption></figure>
+    <p>The White Cliffs of Dover rise to around 110 meters. In the Late Cretaceous, some 89 to 85 million years ago, global sea level stood more than two hundred meters higher than today, and this was a warm, shallow sea. At its surface drifted single-celled algae called coccolithophores, each armored in tiny calcite plates. When they died, the plates fell like snow and settled as white ooze. The ooze became chalk; the chalk was lifted out of the sea. The black bands in the cliffs are flint. The rest of that white is the cast-off clothing of countless lives.</p>
+    <figure class="plate narrow"><img src="img/coccolith.jpg" width="960" height="768" alt="Scanning electron micrograph of a coccolithophore" loading="lazy" decoding="async">
+      <figcaption>The coccolithophore <em>Coccolithus pelagicus</em> under a scanning electron microscope. Chalk is built, layer on layer, from plates like these.<span class="credit">Richard Lampitt, Jeremy Young, The Natural History Museum, London · CC BY 2.5 (converted to grayscale) · <a href="https://commons.wikimedia.org/wiki/File:Coccolithus_pelagicus.jpg">Source ↗</a></span></figcaption></figure>
+    <p>The Great Barrier Reef runs for nearly 2,300 kilometers, some 3,000 reefs and 900 islands, the largest structure built by living things. Coral polyps pile their skeletons upward, the living growing on the dead, so that only the outermost skin of this whole relief is alive.</p>
+    <p>In 1994 the ecologists Clive Jones, John Lawton and Moshe Shachak gave such organisms a name: <em class="l">ecosystem engineers</em>. The idea grew partly out of a snail in the Negev Desert that eats rock. They split the engineers in two. Some change the world with their own bodies, like corals and trees. Others change it by acting on other materials, like the beaver building its dam. The first kind models; the second carves. Life practices both arts at once.</p>
+    <p>Life sculpts even where there is no light.</p>
+    <p id="lostcity">In December 2000, the submersible <em class="l">Alvin</em> came upon a field of creamy white towers on the flank of an undersea mountain west of the Mid-Atlantic Ridge, more than seven hundred meters down. There, mantle rock reacting with seawater releases hydrogen and methane, and carbonate precipitates layer by layer into chimneys. Some are the size of toadstools; the tallest, named Poseidon, stands more than sixty meters high.</p>
+    <p>This is the Lost City. It has been venting for at least 120,000 years, and microbes that live on chemical energy crowd its cracks. Some scientists think life on Earth may have begun in a place like this. If so, the third sculptor's first studio was a city of stone that has never seen the sun.</p>
+    <figure class="plate"><img src="img/lostcity.jpg" width="600" height="394" alt="Carbonate chimney growth at the Lost City" loading="lazy" decoding="async">
+      <figcaption>The Lost City as photographed at its discovery in December 2000: branching carbonate growing on a flange about 1.5 meters wide on the side of a chimney.<span class="credit">National Science Foundation (University of Washington / Woods Hole Oceanographic Institution) · Public domain · <a href="https://commons.wikimedia.org/wiki/File:Lost_City_(hydrothermal_field)02.jpg">Source ↗</a></span></figcaption></figure>
   </section>
 
-  <section data-n="V" data-depth="深海平原" id="s5">
-    <h2><span class="n">V</span>雪</h2>
-    <aside class="aside">读到这里，<br>海底已过去 <span id="yrs">0</span> 年，<br>红黏土积起 <span id="mm">0.0</span> 毫米。<br><br>按每千年 3 毫米计。<br>往下读一屏，约等于一千年。</aside>
-    <p class="solo">深海里，永远在下雪。</p>
-    <p>海洋学家称之为「海洋雪」（marine snow）：浮游生物的尸体与外壳、黏液、粪粒、从大陆吹来的细尘，从有光的海面缓缓沉入没有光的深处。每十万升海水里，这样的颗粒只有大约一克。这就是深渊雕塑家手里的泥。</p>
-    <p>在大洋最偏远的中央，红黏土每一千年只积一到五毫米，却铺满了将近五分之二的海底。水浅一些、生命丰富一些的地方，由微小钙质外壳积成的软泥沉积得快一些，但每千年也不过几厘米。山丘就这样被一层又一层盖住，最后消失在地球上最平坦的地形里：深海平原。</p>
-    <p>躺在这些平原上的锰结核，长得更慢。它们是土豆大小的金属团块，以一小片骨头或一颗鲨鱼牙为核，一圈一圈向外沉积，每一百万年才长大约一毫米。一颗可以握在掌心里的结核，可能比我们这个物种还要古老。</p>
-    <figure class="plate narrow"><img src="img/nodule.jpg" width="960" height="1287" alt="挑战者号报告中的锰结核版画" loading="lazy" decoding="async">
-      <figcaption>一颗锰结核，据「挑战者」号考察报告（Murray &amp; Renard）绘制，收入 Jules Richard《海洋学》（1907）。「挑战者」号环球考察（1872–1876）在各大洋的深处，一次次把这样的结核捞上甲板。<span class="credit">Jules Richard, 1907 · University of Washington Freshwater and Marine Image Bank · 公有领域 · <a href="https://commons.wikimedia.org/wiki/File:FMIB_53156_Nodule_manganesium,_d%27apres_Murray_et_Renard_(Challenger).jpeg">来源 ↗</a></span></figcaption></figure>
-    <p>在这样的时间尺度上，大地的浮雕从未静止。山不断被推高，又被磨平；海底在洋中脊诞生，又在海沟里被吞没。我们以为自己看到的是一件已经完成的作品，其实只是路过了它的一个瞬间。</p>
-    <p>而英语里的 relief 还有另一层意思：解脱，卸下重担。</p>
-    <p>地壳里积蓄的应力沿着断层释放，大地便动一下。冰盖融化，压在大陆上的重量卸去，地壳便慢慢回弹，这一过程可以持续数千年。这层双关或许只是语言的巧合，却让人忍不住这样想：每一道山脊，都是大地一次极其漫长的呼气。</p>
+  <section data-n="V" data-depth="abyssal plain" id="s5">
+    <h2><span class="n">V</span>Snow</h2>
+    <aside class="aside">By this point<br>the seafloor has aged <span id="yrs">0</span> years<br>and gathered <span id="mm">0.0</span> mm of red clay.<br><br>At 3 mm per thousand years,<br>one screen of reading is about a thousand years.</aside>
+    <p class="solo">It is always snowing in the deep sea.</p>
+    <p>Oceanographers call it marine snow: the bodies and shells of plankton, mucus, fecal pellets, fine dust blown off the continents, sinking slowly from the lit surface into the lightless depths. A hundred thousand liters of seawater hold only about a gram of such particles. This is the sculptor's clay of the abyss.</p>
+    <p>In the remotest middle of the ocean, red clay accumulates at one to five millimeters every thousand years, and that clay covers nearly two-fifths of the seafloor. Where the water is shallower and life is richer, oozes made of tiny calcareous shells build faster, but still only a few centimeters per millennium. Hills are blanketed one layer at a time until they vanish into the flattest landscapes on Earth: the abyssal plains.</p>
+    <p>The manganese nodules lying on those plains grow more slowly still. Potato-sized lumps of metal, they accrete in rings around a fragment of bone or a shark's tooth, about a millimeter every million years. A nodule small enough to hold in your palm may be older than our species.</p>
+    <figure class="plate narrow"><img src="img/nodule.jpg" width="960" height="1287" alt="Engraving of a manganese nodule from the Challenger report" loading="lazy" decoding="async">
+      <figcaption>A manganese nodule, drawn after the <em>Challenger</em> report (Murray &amp; Renard) and published in Jules Richard's <em>L'Océanographie</em> (1907). On its voyage around the world from 1872 to 1876, <em>Challenger</em> hauled nodules like this up onto its deck from the depths of every ocean.<span class="credit">Jules Richard, 1907 · University of Washington Freshwater and Marine Image Bank · Public domain · <a href="https://commons.wikimedia.org/wiki/File:FMIB_53156_Nodule_manganesium,_d%27apres_Murray_et_Renard_(Challenger).jpeg">Source ↗</a></span></figcaption></figure>
+    <p>On timescales like these, the Earth's relief is never still. Mountains are pushed up and ground down; ocean floor is born at the ridges and swallowed in the trenches. We think we are looking at a finished work. We are passing a single frame.</p>
+    <p>And <em class="l">relief</em> has a second meaning in English: release, the lifting of a burden.</p>
+    <p>Stress stored in the crust is let go along a fault, and the ground moves. When ice sheets melt, their weight lifts off the continents and the crust rebounds, slowly, over thousands of years. The double meaning may be an accident of language. Still, it invites a thought: every ridge is a very long exhalation of the Earth.</p>
   </section>
 
-  <section data-n="VI" data-depth="七成黑暗" id="s6">
-    <h2><span class="n">VI</span>七成黑暗</h2>
-    <p>人们常说，我们对月球的了解甚至超过了对自家海底的了解。这并不夸张。</p>
-    <p>贝兰的画问世半个世纪后，大部分海底仍然是推算出来的，而不是实测的。卫星能测到海面极其微弱的隆起与凹陷——那是海底山脉的引力在水面上投下的影子。凭这些影子重建的海底很模糊：几公里宽的山丘与峡谷都会消失不见。要真正看清它们，就得有一艘船从正上方经过，向下打出一扇声波。</p>
-    <p>2017 年，日本财团与大洋水深总图（GEBCO）共同启动「海底 2030」（Seabed 2030）计划，目标是在 2030 年前完成全球海底测绘。</p>
-    <p>计划启动那年，按现代标准测过的海底只占 6%。到 2026 年 4 月，这一比例已达 28.7%，约 1.04 亿平方公里。数据来自 220 个机构，也来自渔船、游艇和货船——它们在航行中顺手记下水深，再把数据贡献出来。一个人驶过一片没人测过的海，几乎是顺手之间，就能让地球的一小块变得清晰起来。</p>
-    <p class="archive">最新的全球测绘覆盖图见 <a href="https://www.gebco.net/news/release-gebco2026-grid">Seabed 2030 ↗</a>；新发现的海底地名可在 <a href="https://www.gebco.net/data-products/undersea-feature-names">GEBCO 海底地名录 ↗</a> 中查询。</p>
-    <figcaption>读到这里，你已经测绘了这片海底的 <span class="live" id="livePct">0.0%</span>。全球的数字是 28.7%。</figcaption>
-    <p class="solo">剩下的约七成，仍在黑暗之中。</p>
-    <p>没有人确切知道那里藏着什么。但有一点可以肯定：那里有许多还没有名字的山。</p>
-    <p>1975 年，GEBCO 设立了海底地名分委员会（Sub-Committee on Undersea Feature Names），秘书处设在摩纳哥的国际海道测量组织。一座新发现的海山或海谷，可以提请命名，通常经由本国的地名机构提交，并附上坐标、形态、范围，以及它尚未被命名的证明。通过审定的名字会收录进《GEBCO 海底地名录》，成为这颗星球正式地理记录的一部分。</p>
-    <p>在陆地上，稍具规模的山几乎早已都有了名字。而在海里，发现一座山、再给它一个名字，如今仍然在发生。</p>
+  <section data-n="VI" data-depth="seven-tenths dark" id="s6">
+    <h2><span class="n">VI</span>Seven-Tenths Dark</h2>
+    <p>It is often said that we know the Moon better than our own seafloor. It is not an exaggeration.</p>
+    <p>Half a century after Berann's painting, most of the ocean floor is still inferred rather than measured. Satellites can detect the faint bulges and dips of the sea surface, shadows that the gravity of undersea mountains casts upon the water. Seafloor reconstructed from those shadows is blurred: hills and canyons a few kilometers across disappear. To see them properly, a ship has to pass directly overhead and fan a beam of sound down onto them.</p>
+    <p>In 2017 the Nippon Foundation and GEBCO, the General Bathymetric Chart of the Oceans, launched Seabed 2030, a project to map the entire ocean floor by the end of the decade.</p>
+    <p>That year, just 6 percent had been mapped to modern standards. By April 2026 the figure had reached 28.7 percent, about 104 million square kilometers, contributed by 220 organizations, and also by fishing boats, yachts and cargo ships that log the depths as they pass. Someone sailing across an unsurveyed stretch of sea can, almost incidentally, bring a small patch of the planet into focus.</p>
+    <p class="archive">The latest global coverage map: <a href="https://www.gebco.net/news/release-gebco2026-grid">Seabed 2030 ↗</a>. Newly named undersea features can be looked up in the <a href="https://www.gebco.net/data-products/undersea-feature-names">GEBCO Gazetteer ↗</a></p>
+    <figcaption>By this point you have mapped <span class="live" id="livePct">0.0%</span> of this seafloor. The global figure is 28.7%.</figcaption>
+    <p class="solo">The rest, some seven-tenths, is still dark.</p>
+    <p>No one knows exactly what it holds. What is certain is that it holds mountains without names.</p>
+    <p>In 1975 GEBCO set up its Sub-Committee on Undersea Feature Names, supported by a secretariat at the International Hydrographic Organization in Monaco. A newly found seamount or canyon can be put forward for a name, usually through a national naming authority, with its coordinates, shape and extent, and proof that it has not been named already. Accepted names enter the GEBCO Gazetteer of Undersea Feature Names and become part of the planet's official geography.</p>
+    <p>On land, nearly every mountain of any size was named long ago. In the sea, finding a mountain and giving it a name is still something that happens.</p>
   </section>
 
-  <section data-n="VII" data-depth="4,150 米" id="s7">
-    <h2><span class="n">VII</span>我们看不见的东西</h2>
-    <p>林璎（Maya Lin）曾经直截了当地说：「我们看不见的东西，就会去污染它。」</p>
-    <p id="discol">1989 年，德国科考船「太阳」号（Sonne）停在秘鲁外海的南太平洋上。科学家把一台犁耙放到 4,150 米深的海底，在一片 11 平方公里的圆形区域里来回拖曳，犁出 78 道痕迹，每道宽约 8 米。</p>
-    <p>这项名为 DISCOL 的实验，是要模拟开采锰结核会对深海平原造成怎样的影响。</p>
-    <p>2015 年，研究人员重返现场。二十六年过去，水下航行器拍下的画面里，那些犁痕依然清晰可见。旧犁痕里的微生物活动只有正常水平的四分之一；研究人员估计，某些生态功能至少要五十年才能恢复。一片每千年只积几毫米泥的平原，没有办法很快填平一道八米宽的刀痕。</p>
-    <figure class="plate"><img src="img/discol.jpg" width="1280" height="720" alt="2015 年 DISCOL 实验区海底" loading="lazy" decoding="async">
-      <figcaption>2015 年 9 月，「太阳」号重返秘鲁外海的 DISCOL 实验区，遥控潜水器 KIEL 6000 在 4,000 多米深的海底做实验。<span class="credit">ROV-Team / GEOMAR · CC BY 4.0（已转为灰度） · <a href="https://commons.wikimedia.org/wiki/File:2015-09-18_20-40-11_Sonne_SO242-2_205_Logo_original(1).jpg">来源 ↗</a></span></figcaption></figure>
-    <figcaption id="scaleNote">在这张图上，一个像素约等于一公里。一道八米宽的犁痕，只有一个像素的百分之一，在这里看不见。</figcaption>
-    <p>这还只是一场 11 平方公里的实验。而真正商业规模的开采，如今正在审议之中。联合国下属的国际海底管理局至今没有通过商业开采规章，约四十个国家支持暂停开采或采取预防性暂缓措施。</p>
-    <p>与此同时，美国简化了本国的采矿许可程序，金属公司（The Metals Company）申请在太平洋克拉里昂—克利珀顿区（Clarion-Clipperton Zone）开采约 65,000 平方公里的海底。据该公司 2026 年 11 月初的说法，美国主管部门预计在 12 月中旬前作出决定。</p>
-    <p>艺术家们早就在寻找让不可见之物变得可见的方法。</p>
-    <p>林璎把声呐数据当作雕塑材料。她的《水线》（Water Line，2006）用涂黑的铝管，在展厅半空勾出大西洋中脊上一处海底的轮廓——那座海底山在海面上露出的部分，就是世界上最偏远的岛屿之一布韦岛。观众从下方走过，就像鱼穿行在海底。她还和伍兹霍尔海洋研究所合作，把一片北大西洋海底转译成金属丝网格；她的大理石圆环，则是沿赤道、北极圈与纽约所在纬度切下的海底剖面。</p>
-    <p class="archive">林璎的作品受版权保护，图像请见 <a href="https://mayalinstudio.com/art/systematic-landscapes">Maya Lin Studio · Systematic Landscapes ↗</a></p>
-    <p>更早之前，还有野口勇（Isamu Noguchi）。</p>
-    <p>1947 年，广岛与长崎遭受原子弹轰炸之后，他在一块一英尺见方的板子上用沙塑出一张抽象的人脸，命名为《从火星观看的雕塑》（Sculpture to Be Seen from Mars），最初的名字是《人类纪念碑》（Memorial to Man）。</p>
-    <p>按照他的设想，光是鼻子就有一英里长，大到从太空中都能看见。这是一块为人类可能的自我毁灭而立的墓碑，留给未来的文明去读。他自己称它是一首安魂曲，献给所有与原子弹共存的人。它从未建成，如今只剩下一张沙模型的照片。</p>
-    <p class="archive">那张沙模型的照片由 Soichi Sunami 拍摄，藏于野口勇博物馆档案馆。相关展览资料：<a href="https://www.noguchi.org/wp-content/uploads/2021/05/Noguchi-Museum-Presents-Memorials-to-the-Atomic-Dead-New-Closing-Date.pdf">Memorials to the Atomic Dead ↗</a></p>
-    <p>对野口勇来说，大地本身早已是一件浮雕。它缺的，只是一个足够遥远的观看位置。</p>
-    <p>最温柔的回应来自水下。</p>
-    <p>自 2009 年起，英国雕塑家杰森·德凯雷斯·泰勒（Jason deCaires Taylor）在墨西哥坎昆外海四到八米深的水下，安放了五百多尊真人大小的雕像。其中许多以九十多位当地渔民为模特翻模，用 pH 中性的水泥浇铸，好让珊瑚在上面生长。</p>
-    <p>艺术家完成最初的雕刻，随后就放手，把其余的工作交给珊瑚、海绵和鱼群。十多年后，那些闭着双眼的面孔，已经被生命覆盖。</p>
-    <p class="archive">水下雕塑的照片见 <a href="https://underwatersculpture.com/projects/musa-mexico/">Jason deCaires Taylor · MUSA ↗</a></p>
+  <section data-n="VII" data-depth="4,150 m" id="s7">
+    <h2><span class="n">VII</span>What We Don't See</h2>
+    <p>Maya Lin once put it plainly: "What we don't see, we pollute."</p>
+    <p id="discol">In 1989 the German research vessel <em class="l">Sonne</em> stood off Peru in the South Pacific. Scientists lowered a plough-harrow some 4,150 meters to the seafloor and dragged it back and forth across a circle of eleven square kilometers, cutting seventy-eight tracks, each about eight meters wide.</p>
+    <p>The experiment, called DISCOL, was meant to simulate what mining manganese nodules would do to an abyssal plain.</p>
+    <p>In 2015 researchers returned. Twenty-six years on, the plough tracks were still plainly visible in the images from their underwater vehicles. Microbial activity in the old tracks had fallen to a quarter of normal, and the researchers estimated that some ecosystem functions would need at least fifty years to recover. A plain that gathers a few millimeters of mud per thousand years has no quick way to fill in an eight-meter scar.</p>
+    <figure class="plate"><img src="img/discol.jpg" width="1280" height="720" alt="The DISCOL experimental area on the seafloor in 2015" loading="lazy" decoding="async">
+      <figcaption>September 2015: <em>Sonne</em> returns to the DISCOL area off Peru, and the remotely operated vehicle KIEL 6000 runs experiments on the seafloor more than 4,000 meters down.<span class="credit">ROV-Team / GEOMAR · CC BY 4.0 (converted to grayscale) · <a href="https://commons.wikimedia.org/wiki/File:2015-09-18_20-40-11_Sonne_SO242-2_205_Logo_original(1).jpg">Source ↗</a></span></figcaption></figure>
+    <figcaption id="scaleNote">On this map one pixel is about a kilometer. An eight-meter plough track is a hundredth of a pixel, invisible here.</figcaption>
+    <p>That was one experiment, on eleven square kilometers. The cut that would be made at commercial scale is now under review. The International Seabed Authority has still not adopted rules for exploitation, and around forty countries back a moratorium or precautionary pause on deep-sea mining.</p>
+    <p>Meanwhile the United States has streamlined its own permitting, and The Metals Company has applied to mine roughly 65,000 square kilometers of the Clarion-Clipperton Zone in the Pacific. In early November 2026 the company said it expected a US decision by mid-December.</p>
+    <p>Artists have long been looking for ways to make the unseen seen.</p>
+    <p>Lin uses sonar data as a sculptural material. Her <em class="l">Water Line</em> (2006) traces in blackened aluminum tubing, suspended in the gallery, the terrain of a stretch of the Mid-Atlantic Ridge. The part of that undersea mountain that breaks the surface is Bouvet Island, one of the most remote islands in the world. Visitors walk beneath it like fish crossing the seafloor. Working with the Woods Hole Oceanographic Institution, she has also transcribed a piece of the North Atlantic floor into a grid of wire, and her marble rings are sections of the ocean floor cut along the Equator, the Arctic Circle and the latitude of New York City.</p>
+    <p class="archive">Lin's work is under copyright. For images, see <a href="https://mayalinstudio.com/art/systematic-landscapes">Maya Lin Studio · Systematic Landscapes ↗</a></p>
+    <p>Earlier still came Isamu Noguchi.</p>
+    <p>In 1947, after Hiroshima and Nagasaki, he shaped an abstract face in sand on a board a foot square and called it <em class="l">Sculpture to Be Seen from Mars</em>; its original title was <em class="l">Memorial to Man</em>.</p>
+    <p>As he imagined it, the nose alone would be a mile long, large enough to be seen from space, a gravestone for a future civilization in case humanity destroyed itself. He called it a requiem for everyone living with the atomic bomb. It was never built. Only a photograph of the sand model survives.</p>
+    <p class="archive">The photograph of the sand model, by Soichi Sunami, is in the Noguchi Museum Archives. Related exhibition material: <a href="https://www.noguchi.org/wp-content/uploads/2021/05/Noguchi-Museum-Presents-Memorials-to-the-Atomic-Dead-New-Closing-Date.pdf">Memorials to the Atomic Dead ↗</a></p>
+    <p>For Noguchi, the earth itself was already relief. It needed only a viewpoint far enough away.</p>
+    <p>The gentlest answer comes from underwater.</p>
+    <p>Since 2009 the British sculptor Jason deCaires Taylor has placed more than five hundred life-size figures four to eight meters down off Cancún. Many were cast from more than ninety local fishermen and women, in pH-neutral cement, so that coral would grow on them.</p>
+    <p>The artist makes the first cut and then lets go, leaving the rest to coral, sponges and fish. More than a decade later, those faces with their closed eyes are covered in life.</p>
+    <p class="archive">Photographs of the underwater sculptures: <a href="https://underwatersculpture.com/projects/musa-mexico/">Jason deCaires Taylor · MUSA ↗</a></p>
   </section>
 
-  <section data-n="VIII" data-depth="未测绘的海" id="s8">
-    <h2><span class="n">VIII</span>一件尚不存在的作品</h2>
-    <p>有人雕刻过大地，有人把海底搬进美术馆，也有人把深海写成令人恐惧的地方。但迄今为止，几乎还没有作品真正用真实的测深数据，让一个人亲手去探索、甚至塑造深海的浮雕。</p>
-    <p>不妨想象一下，这样一件作品会是什么样子。</p>
-    <p>想象一块全黑的屏幕。你按下一个键，听见一声声呐。几秒钟后，一小片点云在黑暗中亮起，海底的一角仿佛从虚无中浮了出来。</p>
-    <p>「浮雕」的「浮」，在这里变成了一个动作。</p>
-    <p>每一次声呐都有代价：能量、时间，以及对下方生命的打扰。所以你必须选择在哪里倾听。</p>
-    <p>游戏《铁肺》（Iron Lung，2022）已经证明，「看不见」本身就可以是一种体验：它把潜艇的舱窗焊死，只给你坐标和一张张延迟传回、颗粒粗糙的照片。但在这里，海底不必虚构。已经测过的三成可以清晰锐利，只靠卫星推算的七成，则只留下模糊的轮廓。</p>
-    <p>探索，就是一块一块地提高地球的分辨率。走得足够远，你会遇见一座还没有名字的山。</p>
-    <p>再想象另一种相反的情形。</p>
-    <p>你不再是探索者，而是那把凿子本身：你是正在扩张的洋中脊，是热液喷口里沉淀出的碳酸盐，是飘落了一万年的海洋雪，是一颗每一百万年才长大一毫米的锰结核。</p>
-    <p>你可以设定时间流逝的速度：一秒是一年，一秒是一万年，或者一秒是一百万年。</p>
-    <p>游戏《From Dust》（2011）让玩家亲手推动沙土、水与熔岩，证明了揉捏大地本身就是一种乐趣。《Terra Nil》（2023）则要求玩家修复一片荒原，然后拆掉所有建筑，不留痕迹地离开。</p>
-    <p>而在深海，这件作品的情绪会是耐心。</p>
-    <p>直到某一刻，一台采矿机开进画面，几分钟内就犁开了你花几万年才铺好的地表。不需要任何说教。两种速度之间的差距，本身就说明了一切。</p>
-    <p>最后一种作品，甚至不是游戏。</p>
-    <p>它是一件挂在墙上的实体浮雕，可以用机床铣出，也可以由一组能上下升降的针阵组成。全球海底地形数据每更新一次，它就慢慢多出一些细节。</p>
-    <p>今天，它大部分还是平滑而模糊的。十年之后，它可能已经布满山脊与峡谷。</p>
-    <p>它记录的不是海底本身，而是人类逐渐学会看见海底的过程。</p>
-    <p>它也可以是一面镜子：一面在黑暗中，被声呐缓缓照亮的镜子。</p>
-    <figcaption>你此刻读着的这一页，也是其中一种。</figcaption>
+  <section data-n="VIII" data-depth="the unmapped sea" id="s8">
+    <h2><span class="n">VIII</span>A Work That Doesn't Exist Yet</h2>
+    <p>Some have sculpted the land, some have carried the seafloor into galleries, some have made the deep a place of dread. But almost no work yet uses real bathymetric data to let a person discover, or shape, the relief of the deep sea with their own hands.</p>
+    <p>It is worth imagining what one might be like.</p>
+    <p>Picture a screen that is entirely black. You press a key and hear a ping. Seconds later a small cloud of points glows in the darkness, and a corner of the seafloor floats up out of nothing.</p>
+    <p>The "floating" in <em class="l">floating carving</em> becomes an action.</p>
+    <p>Every ping has a cost, in energy, in time, in disturbance to whatever lives below, so you must choose where to listen.</p>
+    <p><em class="l">Iron Lung</em> (2022) has already shown that not seeing can be an experience in itself: it welds the submarine's window shut and leaves you only coordinates and delayed, grainy photographs. Here, though, the seafloor would not need to be invented. The surveyed three-tenths could be sharp, and only the satellite-inferred seven-tenths left in soft outline.</p>
+    <p>Exploring would mean raising the planet's resolution, one patch at a time. Go far enough and you would come upon a mountain with no name.</p>
+    <p>Now picture the reverse.</p>
+    <p>You are no longer the explorer but the chisel itself: the spreading ridge, the carbonate settling out of a vent, marine snow that has been falling for ten thousand years, a nodule that grows a millimeter every million.</p>
+    <p>You set the speed of time: a second per year, a second per ten thousand years, a second per million.</p>
+    <p><em class="l">From Dust</em> (2011) let players push sand, water and lava around by hand and proved that kneading a landscape can be its own pleasure. <em class="l">Terra Nil</em> (2023) asks players to heal a wasteland, then dismantle every building and leave without a trace.</p>
+    <p>In the deep sea the mood of the work would be patience.</p>
+    <p>Until, at some moment, a mining machine rolls into the frame and in minutes ploughs open the surface you spent tens of thousands of years laying down. No sermon would be needed. Only the difference in speed.</p>
+    <p>The last is not a game at all.</p>
+    <p>A physical relief on a wall, milled by machine or made of an array of rising and falling pins, that slowly grows detail with every update to the global bathymetry.</p>
+    <p>Today it would be mostly smooth and vague. In ten years it might be crowded with ridges and canyons.</p>
+    <p>What it records is not the seafloor itself, but the process of humanity coming to see it.</p>
+    <p>It could also be a mirror: a mirror slowly lit, in the dark, by sonar.</p>
+    <figcaption>The page you are reading is one of them.</figcaption>
   </section>
 
-  <section data-n="·" data-depth="底板" id="s9">
-    <h2><span class="n">·</span>尾声</h2>
-    <p>玛丽·萨普于 2006 年去世，享年 86 岁。她画出的裂谷，如今写在每一本地质学教科书里；而贝兰为她的海底画上的那轮太阳，至今仍挂在世界各地大学的走廊里。</p>
-    <p>浮雕之所以是浮雕，是因为它从不脱离自己的底板。形象虽然浮起，却始终与石头相连。</p>
-    <p class="solo">大地也是如此。</p>
-    <p>山脉、珊瑚礁、森林、蚯蚓，以及我们自己，都从同一块底板中浮起。</p>
+  <section data-n="·" data-depth="the ground" id="s9">
+    <h2><span class="n">·</span>Coda</h2>
+    <p>Marie Tharp died in 2006, at eighty-six. The rift she drew is now in every geology textbook, and the sun Berann painted onto her seafloor still hangs in university corridors around the world.</p>
+    <p>A relief is a relief because it never leaves its ground. The figure rises, but it stays joined to the stone.</p>
+    <p class="solo">So it is with the Earth.</p>
+    <p>Mountains, reefs, forests, worms and we ourselves have all risen out of the same ground.</p>
     <figure class="wide">
-      <canvas id="overview" width="1200" height="760" aria-label="读者在这篇文章里测绘过的整条大西洋中脊，分成三段并排展开"></canvas>
-      <figcaption id="ovCap">你的航迹。</figcaption>
-      <figcaption>这篇文章下的整条海底，从北冰洋边缘到布韦岛，分三段从左到右排开。细线是你测过的地方，每一条都是一道真实的剖面，向林璎的《水线》致意；淡淡的起伏是推算的轮廓；墨线是陆地。每个人的这幅图都不一样，这一页会记住你的。</figcaption>
+      <canvas id="overview" width="1200" height="760" aria-label="The whole Mid-Atlantic Ridge as mapped by you in this essay, laid out in three columns"></canvas>
+      <figcaption id="ovCap">Your track.</figcaption>
+      <figcaption>The whole seafloor beneath this essay, from the edge of the Arctic Ocean to Bouvet Island, laid out left to right in three columns. The fine lines are where you measured; each is a real profile, in homage to Maya Lin's <em>Water Line</em>. The faint relief is the inferred outline; the ink lines are land. No two readers' maps are the same, and this page will remember yours.</figcaption>
     </figure>
-    <p id="coda">这件作品露在空气里的部分，我们已经凝视了数千年。而水下的那七成，仍在等待：等一声回响，等一个名字，等某个人愿意放慢脚步，真正地看一看。</p>
+    <p id="coda">The part of this work that stands in the air, we have been looking at for thousands of years. The seven-tenths beneath the water are still waiting: for a ping, for a name, for someone willing to look slowly enough.</p>
   </section>
 
   <footer class="sources">
-    <h3>参考资料</h3>
+    <h3>Sources</h3>
     <ol>
       <li>Marie Tharp, “Connect the Dots: Mapping the Seafloor and Discovering the Mid-ocean Ridge”, <a href="https://news.climate.columbia.edu/2020/07/24/marie-tharp-connecting-dots/">Columbia Climate School</a></li>
       <li><a href="https://www.loc.gov/item/2010586277/">Heezen-Tharp “World ocean floor” map by Berann, Library of Congress</a></li>
@@ -286,26 +300,35 @@ body.plain figure.plate img,html.noobs figure.plate img{opacity:.9;transform:non
       <li>Jones, Lawton &amp; Shachak, <a href="https://webpages.ciencias.ulisboa.pt/~vlamaral/EXPL_MAR-EST_1226_2013_files/7-Jones%201994.pdf">Organisms as Ecosystem Engineers</a>, Oikos 69 (1994)</li>
       <li><a href="https://oceanexplorer.noaa.gov/explorations/05lostcity/background/overview/media/fig3.html">The Lost City 2005, NOAA Ocean Explorer</a></li>
       <li><a href="https://www.gebco.net/news/release-gebco2026-grid">GEBCO, Release of the GEBCO_2026 Grid: 28.7% of the ocean floor mapped (27 April 2026)</a></li>
-      <li><a href="https://www.gebco.net/data-products/undersea-feature-names">GEBCO Gazetteer of Undersea Feature Names</a></li>
+      <li><a href="https://www.gebco.net/data-products/undersea-feature-names">GEBCO Gazetteer of Undersea Feature Names</a> (also the source of the place names on the map)</li>
       <li>Gausepohl et al., <a href="https://bg.copernicus.org/articles/17/1463/2020/">Scars in the abyss</a>, Biogeosciences (2020)</li>
       <li><a href="https://www.marinetechnologynews.com/news/metals-company-hopes-seabed-667303">The Metals Company hopes for US seabed mining permit decision next month</a> (9 Nov 2026)</li>
       <li>NOAA National Centers for Environmental Information (2022), <a href="https://www.ncei.noaa.gov/products/etopo-global-relief-model">ETOPO 2022 15 Arc-Second Global Relief Model</a>, doi:10.25921/fd45-gt74</li>
-      <li><a href="https://www.gebco.net/data-products/undersea-feature-names">GEBCO Gazetteer of Undersea Feature Names</a>（图中海底地名）</li>
       <li><a href="https://mayalinstudio.com/art/systematic-landscapes">Maya Lin: Systematic Landscapes</a></li>
       <li><a href="https://www.noguchi.org/wp-content/uploads/2021/05/Noguchi-Museum-Presents-Memorials-to-the-Atomic-Dead-New-Closing-Date.pdf">Noguchi’s Memorials to the Atomic Dead, The Noguchi Museum</a></li>
       <li><a href="https://underwatersculpture.com/projects/musa-mexico/">Museo Subacuático de Arte, Jason deCaires Taylor</a></li>
     </ol>
-    <p style="margin-top:2rem">图版均来自 Wikimedia Commons，已逐一核对授权：莫里水深图、达尔文插图、挑战者号锰结核版画、失落之城照片为公有领域；多纳泰罗浮雕照片（Sailko）与颗石藻照片（Lampitt、Young / 伦敦自然史博物馆）为 CC BY 2.5；DISCOL 照片（ROV-Team / GEOMAR）为 CC BY 4.0。为与纸面统一，照片均转为灰度。萨普的手稿、贝兰的原画、林璎、野口勇与泰勒的作品仍受版权保护，本页只提供链接。</p>
-    <p style="margin-top:2rem">页面中的海底是真实的：NOAA 的 ETOPO 2022 全球地形模型（15 弧秒分辨率，可免费使用与再分发），经 NOAA CoastWatch ERDDAP 每 1 弧分取一个点，再平均成 2 弧分的网格，沿大西洋中脊切出一条宽约 2,300 公里的条带，从北纬 85° 到南纬 55.6°；东西方向沿大圆展开，中脊轴线居于条带中央。为了让文章里的几处地方对上，「失落之城」恰好落在讲述它的段落旁，布韦岛落在最后一段旁边，南北方向的比例全程一致。纸里素压的起伏，是把同一份数据平滑到约 15 公里，模拟卫星测高的分辨率；事实上，这一带的大部分海底已经有船只实测过。地名依据 GEBCO 海底地名录。结尾的「你的航迹」以细线剖面呈现，向林璎的《水线》（2006）致意。</p>
-    <p><button type="button" id="clearTrack" class="textbtn">清除我的航迹</button></p>
+    <p style="margin-top:2rem">All plates come from Wikimedia Commons, each license checked: Maury's chart, Darwin's figure, the <em>Challenger</em> nodule engraving and the Lost City photograph are in the public domain; the Donatello photograph (Sailko) and the coccolithophore micrograph (Lampitt, Young / Natural History Museum, London) are CC BY 2.5; the DISCOL photograph (ROV-Team / GEOMAR) is CC BY 4.0. To sit with the paper, the photographs have been converted to grayscale. Tharp's manuscripts, Berann's painting, and the works of Maya Lin, Isamu Noguchi and Jason deCaires Taylor are still under copyright; this page only links to them.</p>
+    <p style="margin-top:2rem">The seafloor on this page is real. It comes from NOAA's ETOPO 2022 global relief model (15 arc-seconds, free to use and redistribute), sampled through NOAA CoastWatch ERDDAP every arc-minute and averaged to a 2-arc-minute grid. A strip about 2,300 kilometers wide is cut along the Mid-Atlantic Ridge from 85°N to 55.6°S, unrolled east and west along great circles with the ridge axis in the middle. The north–south scale is constant throughout, chosen so that the Lost City sits beside the passage that describes it and Bouvet Island beside the last paragraph. The faint blind-embossed relief is the same data smoothed to about 15 kilometers, roughly the resolution of satellite altimetry; in fact, most of this stretch of seafloor has already been surveyed by ships. Place names follow the GEBCO Gazetteer. "Your track" at the end is drawn in fine profile lines, in homage to Maya Lin's <em>Water Line</em> (2006).</p>
+    <p><button type="button" id="clearTrack" class="textbtn">Clear my track</button></p>
   </footer>
-</main><script>
+</main>
+<script>
 (function(){
 "use strict";
 var RM=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 var DPR=Math.min(window.devicePixelRatio||1,2);
 var $=function(id){return document.getElementById(id);};
 var body=document.body;
+var EN=(document.documentElement.lang||"").indexOf("en")===0;
+var T=EN?{soundOn:"Sound · on",soundOff:"Sound · off",soundNA:"No sound",plain:"Text only",sea:"Seafloor",m:" m",N:"",S:"",nSuf:"N",sSuf:"S",
+  center:" · strip centerline ",depth:function(z){return z.toLocaleString("en-US")+" m deep";},land:"land",surface:"sea surface",bouvet:"Bouvet Island",fail:"The seafloor data didn't load. The text is all here.",
+  ov:function(d,p){return "Your track · "+d.toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"})+" · "+p+" of this seafloor mapped";},
+  scale:function(km,n){return "On this map one pixel is about "+km+" km. An eight-meter plough track is about 1/"+n+" of a pixel, invisible here.";}}
+ :{soundOn:"声音 · 开",soundOff:"声音 · 关",soundNA:"声音不可用",plain:"纯文字",sea:"海底",m:" 米",N:"北纬 ",S:"南纬 ",nSuf:"",sSuf:"",
+  center:" · 条带中线 ",depth:function(z){return "水深 "+z.toLocaleString("en-US")+" 米";},land:"陆地",surface:"海面",bouvet:"布韦岛",fail:"海底数据没能载入，先读文字吧。",
+  ov:function(d,p){return "你的航迹 · "+d.getFullYear()+" 年 "+(d.getMonth()+1)+" 月 "+d.getDate()+" 日 · 测绘了这条海底的 "+p;},
+  scale:function(km,n){return "在这张图上，一个像素约等于 "+km+" 公里。一道八米宽的犁痕，只有一个像素的 "+n+" 分之一，在这里看不见。";}};
 var PAPER=[234,230,222],GRAPH=[38,41,47];
 
 /* ---------- 纸 ---------- */
@@ -323,15 +346,15 @@ var PAPER=[234,230,222],GRAPH=[38,41,47];
 /* ---------- 声音 ---------- */
 var soundOn=false,actx=null,btn=$("sound");
 btn.addEventListener("click",function(e){e.stopPropagation();
-  soundOn=!soundOn;btn.setAttribute("aria-pressed",String(soundOn));btn.textContent=soundOn?"声音 · 开":"声音 · 关";
-  if(soundOn&&!actx){try{actx=new (window.AudioContext||window.webkitAudioContext)();}catch(err){soundOn=false;btn.textContent="声音不可用";}}
+  soundOn=!soundOn;btn.setAttribute("aria-pressed",String(soundOn));btn.textContent=soundOn?T.soundOn:T.soundOff;
+  if(soundOn&&!actx){try{actx=new (window.AudioContext||window.webkitAudioContext)();}catch(err){soundOn=false;btn.textContent=T.soundNA;}}
   if(actx&&actx.state==="suspended")actx.resume().catch(function(){});});
 function tone(t0,f0,f1,g,dur){var o=actx.createOscillator(),gn=actx.createGain(),lp=actx.createBiquadFilter();lp.type="lowpass";lp.frequency.value=2400;
   o.type="sine";o.frequency.setValueAtTime(f0,t0);o.frequency.exponentialRampToValueAtTime(f1,t0+dur);
   gn.gain.setValueAtTime(.0001,t0);gn.gain.exponentialRampToValueAtTime(g,t0+.008);gn.gain.exponentialRampToValueAtTime(.0001,t0+dur);
   o.connect(lp);lp.connect(gn);gn.connect(actx.destination);o.start(t0);o.stop(t0+dur+.05);}
 function ping(weak){if(!soundOn||!actx)return;try{var t=actx.currentTime;tone(t,1320,1180,weak?.02:.06,1.4);if(!weak)tone(t+.95,1300,1170,.02,1.1);}catch(e){}}
-$("plain").addEventListener("click",function(e){e.stopPropagation();var on=!body.classList.contains("plain");body.classList.toggle("plain",on);this.setAttribute("aria-pressed",String(on));this.textContent=on?"海底":"纯文字";dirty=true;});
+$("plain").addEventListener("click",function(e){e.stopPropagation();var on=!body.classList.contains("plain");body.classList.toggle("plain",on);this.setAttribute("aria-pressed",String(on));this.textContent=on?T.sea:T.plain;dirty=true;});
 
 /* ---------- 数据 ---------- */
 var META,NC,NR,Z,ZS,SEA,embC,sunC,toneC,mask,mx,grainPat,coastPath,landTint;
@@ -413,7 +436,7 @@ function build(){
   sea.width=fx.width=Math.round(innerWidth*DPR);sea.height=fx.height=Math.round(innerHeight*DPR);
   offA=mk(sea.width,sea.height);oa=offA.getContext("2d");
   mx.clearRect(0,0,NC,NR);singleLines=[];
-  var sc="在这张图上，一个像素约等于 "+(META.cellKm/ppr).toFixed(1)+" 公里。一道八米宽的犁痕，只有一个像素的 "+Math.round(META.cellKm/ppr*1000/8)+" 分之一，在这里看不见。";$("scaleNote").textContent=sc;
+  var sc=T.scale((META.cellKm/ppr).toFixed(1),Math.round(META.cellKm/ppr*1000/8));$("scaleNote").textContent=sc;
   built=true;
   if(state.hi>=0)paintRows(state.lo,state.hi,true);
   state.pings.forEach(function(p){revealAt(p.r,p.c);});
@@ -489,7 +512,7 @@ function renderSea(){
     sx.globalAlpha=Math.min(1,vis*1.3);
     sx.fillStyle=ink(.85);sx.beginPath();sx.arc(x*k,y*k,(lb.land?1.4:1.8)*k,0,6.2832);lb.land?sx.fill():(sx.lineWidth=k*.8,sx.strokeStyle=ink(.8),sx.stroke());
     if(inLane){sx.strokeStyle=ink(.16);sx.lineWidth=k*.5;sx.beginPath();sx.moveTo((x+4)*k,y*k);sx.lineTo((tx-4)*k,y*k);sx.stroke();}
-    sx.fillStyle=ink(.78);sx.textAlign="left";sx.fillText(lb.zh+"  "+lb.en,tx*k,(y-5)*k);
+    sx.fillStyle=ink(.78);sx.textAlign="left";sx.fillText(EN?lb.en:lb.zh+"  "+lb.en,tx*k,(y-5)*k);
     sx.fillStyle=ink(.48);sx.fillText(lb.lat+(lb.land?"":"  "+Math.abs(lb.z).toLocaleString("en-US")+" m"),tx*k,(y+8)*k);});
   sx.globalAlpha=1;sx.restore();
   if(startY>0){var fg=sx.createLinearGradient(0,startY,0,startY+260*k);fg.addColorStop(0,"rgba(0,0,0,1)");fg.addColorStop(1,"rgba(0,0,0,0)");sx.globalCompositeOperation="destination-out";sx.fillStyle=fg;sx.fillRect(0,startY-1,W,260*k+1);sx.globalCompositeOperation="source-over";}}
@@ -508,7 +531,7 @@ function renderFx(now,dt){
       var target=Z?-Z[Math.max(0,Math.min(NR-1,Math.round(rowAt(Y.s1))))*NC+axisCol]:3000,depth=Math.max(0,Math.min(target,(beamDoc-Y.leadAnchor-vh*.55)/(Y.s1-Y.leadAnchor-vh*.2)*target));
       fxx.fillStyle=ink((.7*fade).toFixed(3));fxx.beginPath();fxx.arc(x,ye,2.2*k,0,6.2832);fxx.fill();
       fxx.font=(10*k)+"px 'IBM Plex Mono', monospace";fxx.fillStyle="rgba(124,118,108,"+fade.toFixed(3)+")";fxx.textAlign="right";fxx.textBaseline="alphabetic";
-      fxx.fillText(Math.round(depth/10)*10+" 米",x-10*k,ye+4*k);
+      fxx.fillText(Math.round(depth/10)*10+T.m,x-10*k,ye+4*k);
       for(var t=500;t<depth;t+=500){var ty=ye-(depth-t)/Math.max(1,target)*(ye-ys);fxx.fillRect(x-4*k,ty,8*k,k*.7);}}}
   // 声呐线
   if(beamDoc>Y.s1){var by=vh*.55*k,single=beamDoc<Y.s2,a=single?.55:.4,g=fxx.createLinearGradient(0,0,W,0);
@@ -529,12 +552,12 @@ function computePct(){
   var d=mx.getImageData(c0,r0,c1-c0,r1-r0).data,w=c1-c0,tot=0,got=0;
   for(var r=r0;r<r1;r++)for(var c=c0;c<c1;c++){if(!SEA[r*NC+c])continue;tot++;got+=d[((r-r0)*w+(c-c0))*4+3]/255;}
   pctVal=tot?got/tot*100:0;pctDirty=false;}
-function fmtLat(la){var a=Math.abs(la),deg=Math.floor(a),mn=Math.round((a-deg)*60);if(mn===60){deg++;mn=0;}return (la>=0?"北纬 ":"南纬 ")+deg+"°"+(mn<10?"0":"")+mn+"′";}
+function fmtLat(la){var a=Math.abs(la),deg=Math.floor(a),mn=Math.round((a-deg)*60);if(mn===60){deg++;mn=0;}return (la>=0?T.N:T.S)+deg+"°"+(mn<10?"0":"")+mn+"′"+(la>=0?T.nSuf:T.sSuf);}
 function updateHud(){
   var p=pctVal.toFixed(1)+"%";$("hudPct").textContent=p;$("livePct").textContent=p;$("hudPings").textContent=state.left;
-  var d=new Date();$("ovCap").textContent="你的航迹 · "+d.getFullYear()+" 年 "+(d.getMonth()+1)+" 月 "+d.getDate()+" 日 · 测绘了这条海底的 "+p;
+  var d=new Date();$("ovCap").textContent=T.ov(d,p);
   if(built){var beam=scrollY+innerHeight*.55,r=Math.round(rowAt(beam));
-    if(beam>Y.s1&&r>=0&&r<NR){var la=META.latTop-r*META.dRow,z=Z[r*NC+axisCol];$("hudPos").textContent=fmtLat(la)+" · 条带中线 "+(z<0?"水深 "+Math.round(-z).toLocaleString("en-US")+" 米":"陆地");}
+    if(beam>Y.s1&&r>=0&&r<NR){var la=META.latTop-r*META.dRow,z=Z[r*NC+axisCol];$("hudPos").textContent=fmtLat(la)+T.center+(z<0?T.depth(Math.round(-z)):T.land);}
     else $("hudPos").textContent="";}}
 var KEY="relief-track-v2",saveT;
 function save(){clearTimeout(saveT);saveT=setTimeout(function(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}},500);}
@@ -562,7 +585,7 @@ function drawOverview(){
     ox.font="13px 'IBM Plex Mono', monospace";ox.fillStyle="rgba(124,118,108,.9)";ox.textAlign="left";
     ox.fillText(fmtLat(META.latTop-ra*META.dRow),left,Hh-8);}
   if(BOUVET){var kb=2,rb=BOUVET.r-(r0+kb*span),xb=kb*(cw+gap)+(BOUVET.c-c0)*sxl,yb2=rb*sy;ox.fillStyle=ink(.9);ox.beginPath();ox.arc(xb,yb2,3,0,6.2832);ox.fill();
-    ox.font="13px 'IBM Plex Mono', monospace";ox.textAlign="right";ox.fillText("布韦岛",xb-8,yb2+4);}}
+    ox.font="13px 'IBM Plex Mono', monospace";ox.textAlign="right";ox.fillText(T.bouvet,xb-8,yb2+4);}}
 
 /* ---------- 滚动与循环 ---------- */
 var lastBeam=null;
@@ -570,7 +593,7 @@ function onScroll(){
   if(!built)return;var vh=innerHeight,beam=scrollY+vh*.55;
   if(lastBeam===null)lastBeam=beam;if(beam>Y.s1||lastBeam>Y.s1)paintRows(rowAt(Math.max(Y.s1,lastBeam)),rowAt(Math.max(Y.s1,beam)),false);lastBeam=beam;
   var cur=null;secs.forEach(function(s){if(s.getBoundingClientRect().top<vh*.45)cur=s;});
-  mark.innerHTML=(cur?cur.dataset.n:"·")+"<small>"+(cur?cur.dataset.depth:"海面")+"</small>";$("hudDepth").textContent=cur?cur.dataset.depth:"海面";
+  mark.innerHTML=(cur?cur.dataset.n:"·")+"<small>"+(cur?cur.dataset.depth:T.surface)+"</small>";$("hudDepth").textContent=cur?cur.dataset.depth:T.surface;
   var r5=$("s5").getBoundingClientRect(),read=Math.max(0,vh*.6-r5.top),yrs=Math.round(read/vh*1000/10)*10;
   if(yrs>maxYears&&r5.bottom>0){maxYears=yrs;$("yrs").textContent=maxYears.toLocaleString("zh-CN");$("mm").textContent=(maxYears/1000*3).toFixed(1);}
   updateHud();save();dirty=true;}
@@ -595,7 +618,7 @@ window.addEventListener("load",function(){setTimeout(watchHeight,100);});
 function start(){
   load();requestAnimationFrame(frame);
   loadData().then(function(res){prep(res[0],res[1]);ready=true;lastH=document.documentElement.scrollHeight;build();lastBeam=null;onScroll();$("loadnote").classList.add("done");})
-  .catch(function(){$("loadnote").textContent="海底数据没能载入，先读文字吧。";body.classList.add("plain");});}
+  .catch(function(){$("loadnote").textContent=T.fail;body.classList.add("plain");});}
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(function(){setTimeout(start,60);});else window.addEventListener("load",start);
 })();
 </script>
